@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GRID — Google-linked Report & Input Dashboard</title>
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="GRID — Google-linked Report & Input Dashboard">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link id="gridManifest" rel="manifest">
+<style>
+:root{
+  --bg:#f6f8fb;--surface:#fff;--surface-2:#f2f5f9;--surface-3:#eaf0f7;
+  --border:#d7e0eb;--border-soft:#e9eef4;--text:#182335;--text-dim:#5d6b7d;
+  --text-faint:#8795a8;--accent:#2864e8;--accent-soft:#eaf1ff;--accent-ink:#fff;
+  --success:#17864b;--success-soft:#e8f7ef;--danger:#d94c4c;--danger-soft:#fff0f0;
+  --warn:#a56a00;--warn-soft:#fff7df;--radius:13px;--radius-sm:9px;
+  --shadow:0 5px 18px rgba(31,55,87,.08);
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+input,select,textarea{width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:11px 12px;font-size:15px}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(40,100,232,.18);border-color:var(--accent)}
+textarea{min-height:86px;resize:vertical}
+.hidden{display:none!important}.mono{font-family:var(--mono)}
+#app{width:100%;max-width:520px;min-height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--surface)}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex:0 0 auto}
+.brand-copy{min-width:0}.brand-title{font-size:16px;font-weight:800;line-height:1.15}.brand-sub{font-size:10px;color:var(--text-faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-actions{display:flex;gap:6px;align-items:center}.top-actions button{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 8px;color:var(--text-dim);font-size:13px}
+main{flex:1;overflow-y:auto;padding-bottom:76px}
+.view{display:none;padding:14px 16px 22px}.view.active{display:block}
+.page-title{font-size:18px;font-weight:800;margin:2px 0 4px}.page-subtitle{font-size:11px;color:var(--text-faint);margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+.field{margin-bottom:12px}.field:last-child{margin-bottom:0}.field label{display:block;font-size:11px;font-weight:800;color:var(--text-faint);margin:0 0 6px;letter-spacing:.3px}.required{color:var(--danger)}
+.field-hint{font-size:11px;color:var(--text-faint);margin-top:5px;line-height:1.4}
+.choice-list{display:flex;flex-wrap:wrap;gap:7px}.choice-list label{font-size:13px;font-weight:600;color:var(--text-dim);border:1px solid var(--border);background:var(--surface-2);border-radius:20px;padding:7px 10px;cursor:pointer}.choice-list input{width:auto;margin:0 5px 0 0;vertical-align:middle}
+.choice-list.radio-list{display:grid;grid-template-columns:1fr 1fr}.choice-list.radio-list label{border-radius:9px}
+.submit-btn{width:100%;border:0;background:var(--accent);color:#fff;border-radius:11px;padding:14px 16px;font-weight:800;font-size:15px;box-shadow:0 4px 12px rgba(40,100,232,.22)}
+.submit-btn:active{transform:translateY(1px)}.submit-btn:disabled{opacity:.6;cursor:wait}
+.inline-message{display:none;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}.inline-message.show{display:block}.inline-message.success{background:var(--success-soft);color:var(--success);border:1px solid #bfe8d0}.inline-message.error{background:var(--danger-soft);color:var(--danger);border:1px solid #f1c6c6}.inline-message.warn{background:var(--warn-soft);color:var(--warn);border:1px solid #efd99a}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:520px;margin:0 auto;display:flex;background:rgba(255,255,255,.98);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 14px rgba(31,55,87,.06)}
+.tabbar button{flex:1;border:0;background:none;padding:9px 0 8px;color:var(--text-faint);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}.tabbar button .ic{font-size:17px;line-height:1}.tabbar button.active{color:var(--accent)}
+.toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px}.toolbar-spacer{flex:1}
+.btn{border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px 11px;font-size:12px;font-weight:800;color:var(--text-dim)}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.ghost{background:var(--surface-2)}.btn.danger{background:var(--danger-soft);border-color:#f1c6c6;color:var(--danger)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.filter-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:9px}.filter-chip{flex:0 0 auto;border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:7px 10px;font-size:11px;font-weight:800;color:var(--text-dim)}.filter-chip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.report-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:#fff}.report-grid{border-collapse:collapse;width:100%;min-width:340px;font-size:12px}.report-grid th,.report-grid td{border-bottom:1px solid var(--border-soft);border-right:1px solid var(--border-soft);padding:7px 8px;text-align:right;white-space:nowrap}.report-grid th:last-child,.report-grid td:last-child{border-right:0}.report-grid th:first-child,.report-grid td:first-child{text-align:left}.report-grid thead th{background:#17243a;color:#fff;font-size:11px;font-weight:800}.report-grid tbody tr:nth-child(even){background:#fbfcfe}.report-grid .total-row td{background:#e9f2ff;color:#16499f;font-weight:900;border-top:1px solid #bfd3f3}.report-empty{padding:34px 15px;text-align:center;color:var(--text-faint);font-size:13px}
+.auth-card{text-align:center;padding:26px 16px}.auth-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-weight:900}.auth-card h3{margin:0 0 6px;font-size:16px}.auth-card p{margin:0 0 15px;color:var(--text-dim);font-size:12px;line-height:1.5}
+.seg{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--border);padding:3px;border-radius:10px;margin-bottom:13px;overflow:auto}.seg button{flex:1;min-width:74px;border:0;border-radius:7px;background:none;padding:8px 7px;color:var(--text-faint);font-size:11px;font-weight:800}.seg button.active{background:#fff;color:var(--accent);box-shadow:0 1px 4px rgba(31,55,87,.1)}
+.settings-section{margin-bottom:18px}.section-title{font-size:11px;font-weight:900;color:var(--text-faint);letter-spacing:.6px;text-transform:uppercase;margin:0 0 8px}
+.settings-row{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 12px;margin-bottom:8px}.settings-row-head{display:flex;align-items:center;gap:8px}.settings-row-head .grow{flex:1;min-width:0}.settings-row-title{font-size:13px;font-weight:800}.settings-row-sub{font-size:10px;color:var(--text-faint);margin-top:2px;line-height:1.35}
+.field-actions{display:flex;gap:4px}.icon-btn{border:1px solid var(--border);background:var(--surface-2);border-radius:7px;padding:6px 7px;color:var(--text-dim);font-size:13px}.icon-btn:disabled{opacity:.35}
+.field-edit{margin-top:9px;padding-top:9px;border-top:1px solid var(--border-soft)}.field-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field-edit-grid .wide{grid-column:1/-1}
+.option-list{margin-top:8px}.option-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}.option-row input{padding:8px 9px;font-size:13px}.add-link{border:0;background:none;color:var(--accent);font-weight:800;font-size:12px;padding:5px 0}
+.detected{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.detected-pill{border:1px solid #bcd0f4;background:var(--accent-soft);color:#2457b9;border-radius:16px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer}
+.info-box{background:var(--warn-soft);border:1px solid #efd99a;color:#805600;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.5;margin-bottom:10px}.info-box b{font-weight:900}
+.instructions{border:1px solid var(--border);border-radius:10px;background:var(--surface-2);padding:10px 11px;font-size:11px;color:var(--text-dim);line-height:1.55}.instructions summary{cursor:pointer;font-weight:900;color:var(--text)}
+.check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.check-item{display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:8px;font-size:11px;color:var(--text-dim)}.check-item input{width:auto}
+.status-card{display:flex;align-items:center;gap:10px}.status-dot{width:9px;height:9px;border-radius:50%;background:var(--text-faint);flex:0 0 auto}.status-dot.ok{background:var(--success)}.status-dot.warn{background:#d99419}
+.status-email{font-size:11px;color:var(--accent);font-weight:800}.small{font-size:11px;color:var(--text-faint);line-height:1.45}
+.about-section p{margin:0}.defaults-list{margin-top:9px}.default-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}.default-row select,.default-row input{flex:1}.fetch-box{background:var(--accent-soft);border:1px solid #c9d9fb;color:#2857ae;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.5;margin-bottom:10px}.report-source-status{font-size:11px;color:var(--text-dim);margin:5px 0 9px}.detected-entry{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px;margin-top:6px}.detected-entry select{max-width:55%}.reset-card{margin-top:10px}.danger-icon{color:var(--danger);border-color:#f0b8b8;background:var(--danger-soft)}.about-hero{display:flex;gap:13px;align-items:center}.about-logo{width:58px;height:58px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:900;flex:0 0 auto}.about-hero h2{margin:0 0 3px;font-size:20px}.about-hero p{margin:0;color:var(--text-dim);font-size:11px;line-height:1.45}.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.feature{border:1px solid var(--border);border-radius:9px;padding:10px;background:var(--surface-2)}.feature b{display:block;font-size:11px;margin-bottom:3px}.feature span{font-size:10px;color:var(--text-faint);line-height:1.35}
+.modal-backdrop{position:fixed;inset:0;background:rgba(20,31,47,.38);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:14px}.modal{width:min(520px,100%);max-height:min(88vh,700px);overflow:auto;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(20,31,47,.25);padding:16px}.modal.center{align-self:center}.modal h3{margin:0 0 7px;font-size:16px}.modal p{margin:0 0 12px;color:var(--text-dim);font-size:12px;line-height:1.5}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.modal-actions .btn{min-width:80px}.choice-btn{width:100%;text-align:left;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:11px;margin:6px 0;font-size:13px;font-weight:800}.choice-btn.primary{background:var(--accent-soft);border-color:#bfd1f5;color:#1e53b8}
+.step{display:none}.step.active{display:block}.step-label{font-size:10px;color:var(--text-faint);font-weight:900;text-transform:uppercase;letter-spacing:.6px;margin-bottom:9px}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(15px);z-index:200;opacity:0;pointer-events:none;background:#182335;color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;transition:.18s;max-width:calc(100% - 28px);text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.update-notice{display:none;position:fixed;left:12px;right:12px;bottom:76px;z-index:90;background:#fff;border:1px solid #bfd1f5;border-radius:13px;padding:13px;box-shadow:var(--shadow)}.update-notice.show{display:block}.update-notice b{font-size:13px}.update-notice p{font-size:11px;color:var(--text-dim);margin:4px 0 10px}.update-actions{display:flex;justify-content:flex-end;gap:7px}
+@media(max-width:430px){.field-edit-grid{grid-template-columns:1fr}.feature-grid,.check-grid{grid-template-columns:1fr}.choice-list.radio-list{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">G</div>
+      <div class="brand-copy"><div class="brand-title">GRID</div><div class="brand-sub">Google-linked Report &amp; Input Dashboard</div></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-home">
+      <div class="page-title" id="homeTitle">GRID</div>
+      <div class="page-subtitle">Home · Fill out an entry</div>
+      <div id="homeMessage" class="inline-message"></div>
+      <form id="homeForm" class="card" novalidate></form>
+    </section>
+
+    <section class="view" id="view-report">
+      <div class="page-title" id="reportTitle">GRID</div>
+      <div class="page-subtitle">Report</div>
+      <div id="reportAuth"></div>
+      <div id="reportBody" class="hidden">
+        <div class="toolbar">
+          <button class="btn primary" id="fetchReport">↓ Fetch</button><button class="btn" id="refreshReport">↻ Refresh</button>
+          <div class="toolbar-spacer"></div>
+          <span id="reportStatus" class="small"></span>
+        </div>
+        <div id="reportFilters" class="filter-row"></div>
+        <div class="toolbar">
+          <div class="toolbar-spacer"></div>
+          <button class="btn" id="copyReport">▣ Copy</button>
+          <button class="btn" id="exportCsv">⇩ Export</button>
+        </div>
+        <div id="reportGridWrap"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-settings">
+      <div class="page-title">Settings</div>
+      <div class="page-subtitle">Private configuration · owner access</div>
+      <div id="settingsAuth"></div>
+      <div id="settingsPrivate" class="hidden">
+        <div class="seg" id="settingsTabs">
+          <button data-tab="links" class="active">Links</button>
+          <button data-tab="fields">Form fields</button>
+          <button data-tab="report">Report</button>
+          <button data-tab="sync">Sync</button>
+        </div>
+        <div id="settingsContent"></div><div id="settingsResetArea"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-about">
+      <div class="card about-hero"><div class="about-logo">G</div><div><h2>GRID</h2><p>Google-linked Report &amp; Input Dashboard<br><span id="aboutVersion">v1.3.0</span> · light-theme PWA</p></div></div>
+      <div class="card"><div class="section-title">Currently set up for</div><div id="aboutFormTitle" style="font-size:16px;font-weight:800">GRID</div></div>
+      <div class="card about-section"><div class="section-title">What GRID does</div><p class="small" style="font-size:12px">GRID lets anyone submit an entry directly to a configured Google Form without logging in. The private Report and Settings screens use the data owner's Google account to read the linked Sheet and synchronize GRID's own configuration.</p></div>
+      <div class="card about-section"><div class="section-title">Installing GRID</div><p class="small">Open GRID in Chrome or another supported browser over HTTPS, then use the browser's <b>Install app</b> / <b>Add to Home screen</b> option. The PWA works as a standalone app and can use the cached shell when offline.</p></div>
+      <div class="card about-section"><div class="section-title">Data &amp; privacy</div><p class="small">Home sends the values you enter directly to the configured Google Form. GRID does not keep submitted entries in its own database. Report reads the linked Google Sheet only after you explicitly fetch/refresh it and Google access has been granted. GRID's local settings contain configuration, not Google login tokens.</p></div>
+      <div class="card about-section"><div class="section-title">Sharing / forking GRID</div><p class="small">You can share the hosted GRID URL with other users. A fork/copy should use its own Google OAuth Web Client ID and its own configured Form/Sheet links. Exported JSON can transfer the GRID configuration, while each device signs into Google separately.</p><button class="btn" id="shareApp" style="width:100%;margin-top:10px">↗ Share this app</button></div>
+      <div class="card about-section"><div class="section-title">Legal</div><p class="small">GRID is a client-side utility. Google Forms, Google Sheets, Google Drive and Google authentication remain Google services subject to Google's own terms and policies. The GRID operator is responsible for the forms, sheets, data and permissions configured in the app.</p></div>
+      <div class="card about-section"><div class="section-title">Version</div><p class="small"><b>GRID ${GRID_VERSION}</b><br>Light-theme PWA · Google-linked Report &amp; Input Dashboard</p><p class="small" id="updateStatus">Checking service-worker status…</p><button class="btn" id="checkUpdate" style="margin-top:9px;width:100%">↻ Check for updates</button></div>
+    </section>
+  </main>
+
+  <nav class="tabbar" id="tabbar">
+    <button class="active" data-view="home"><span class="ic">⌂</span><span>Home</span></button>
+    <button data-view="report"><span class="ic">▦</span><span>Report</span></button>
+    <button data-view="settings"><span class="ic">⚙</span><span>Settings</span></button>
+    <button data-view="about"><span class="ic">ⓘ</span><span>About</span></button>
+  </nav>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast"></div>
+<div id="updateNotice" class="update-notice">
+  <b>New version available</b>
+  <p>A newer GRID service worker is ready.</p>
+  <div class="update-actions"><button class="btn" id="updateLater">Later</button><button class="btn primary" id="updateNow">Update</button></div>
+</div>
+<iframe name="grid_submit_iframe" id="gridSubmitIframe" style="display:none"></iframe>
+
+<script>
+(() => {
+"use strict";
+
+/* ===================== GRID APP CONFIG ===================== */
+const GRID_VERSION = "1.0.0";
+const LS_KEY = "grid.config.v2";
+const SYNC_KEY = "grid.sync.v1";
+const SYNC_BASE_KEY = "grid.sync.base.v1";
+const DRIVE_FILE_NAME = "grid-settings.json";
+
+/* Replace this with the OAuth client ID configured for the GRID deployment. */
+const GRID_GOOGLE_CLIENT_ID = "26962638485-2upnfr06rrc89m9ihtp9oosnqii22dni.apps.googleusercontent.com";
+const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets.readonly";
+
+const EMPTY_CONFIG = {
+  grid_version: GRID_VERSION,
+  links: {
+    formViewUrl: "",
+    sheetUrl: "",
+    formTitle: ""
+  },
+  fields: [],
+  defaultValueRows: [],
+  reportLayout: {
+    rowsField: null,
+    columnsField: null,
+    columnsValues: [],
+    valueField: null,
+    aggregation: "sum",
+    filterField: null,
+    showSerialNumber: true,
+    periodField: null,
+    measureAggregations: {}
+  }
+};
+
+const clone = x => JSON.parse(JSON.stringify(x));
+function loadConfig(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw){ const c=clone(EMPTY_CONFIG); saveConfig(c); return c; }
+    const c=JSON.parse(raw);
+    c.grid_version=GRID_VERSION;
+    c.links ||= {formViewUrl:"",sheetUrl:"",formTitle:""};
+    c.links.formViewUrl ??= "";
+    c.links.sheetUrl ??= "";
+    c.links.formTitle ??= "";
+    c.fields=Array.isArray(c.fields)?c.fields:[];
+    c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;
+    c.fields.forEach(f=>{
+      if(!Array.isArray(f.defaultValues))f.defaultValues=[];
+      if(!Array.isArray(f.options))f.options=[];
+      if(!("choiceDisplay" in f))f.choiceDisplay="dropdown";
+    });
+    c.reportLayout ||= clone(EMPTY_CONFIG.reportLayout);
+    c.reportLayout.rowsField ??= null;
+    c.reportLayout.columnsField ??= null;
+    c.reportLayout.valueField ??= null;
+    c.reportLayout.columnsValues=Array.isArray(c.reportLayout.columnsValues)?c.reportLayout.columnsValues:[];
+    c.reportLayout.filterField ??= null;
+    c.reportLayout.periodField ??= null;
+    c.reportLayout.showSerialNumber ??= true;
+    c.reportLayout.measureAggregations ||= {};
+    return c;
+  }catch(e){ return clone(EMPTY_CONFIG); }
+}
+
+let config=loadConfig();
+
+function saveConfig(){
+  config.grid_version=GRID_VERSION;
+  localStorage.setItem(LS_KEY,JSON.stringify(config));
+}
+function sortFields(){ return [...config.fields].sort((a,b)=>(a.order||0)-(b.order||0)); }
+function renumberFields(){ sortFields().forEach((f,i)=>f.order=i+1); saveConfig(); }
+const fieldById=id=>config.fields.find(f=>f.id===id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=> "f_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);
+
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toast._timer); toast._timer=setTimeout(()=>t.classList.remove("show"),2600);
+}
+function showMessage(id,type,msg){
+  const el=document.getElementById(id); if(!el)return;
+  el.className="inline-message show "+type; el.textContent=msg;
+}
+function clearMessage(id){ const el=document.getElementById(id); if(el)el.className="inline-message"; }
+
+function modal(title,body,actions=[],center=true){
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal ${center?"center":""}">
+    <h3>${esc(title)}</h3><div class="modal-content">${body}</div>
+    <div class="modal-actions">${actions.map((a,i)=>`<button class="btn ${a.primary?"primary":""} ${a.danger?"danger":""}" data-mi="${i}">${esc(a.label)}</button>`).join("")}</div>
+  </div></div>`;
+  const backdrop=root.firstElementChild;
+  actions.forEach((a,i)=>backdrop.querySelector(`[data-mi="${i}"]`).onclick=()=>{root.innerHTML="";a.onClick?.()});
+  backdrop.addEventListener("click",e=>{if(e.target===backdrop)root.innerHTML=""});
+  return root;
+}
+function confirmDialog(title,message,ok="OK"){
+  return new Promise(resolve=>{
+    modal(title,`<p>${esc(message)}</p>`,[
+      {label:"Cancel",onClick:()=>resolve(false)},
+      {label:ok,primary:true,onClick:()=>resolve(true)}
+    ]);
+  });
+}
+function choiceDialog(title,message,choices){
+  return new Promise(resolve=>{
+    const root=document.getElementById("modalRoot");
+    root.innerHTML=`<div class="modal-backdrop"><div class="modal center"><h3>${esc(title)}</h3><p>${esc(message||"")}</p><div>${choices.map((c,i)=>`<button class="choice-btn ${c.primary?"primary":""}" data-c="${i}">${esc(c.label)}</button>`).join("")}</div></div></div>`;
+    root.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{const c=choices[+b.dataset.c];root.innerHTML="";resolve(c.value)});
+    root.firstElementChild.addEventListener("click",e=>{if(e.target===root.firstElementChild){root.innerHTML="";resolve(null)}});
+  });
+}
+function promptDialog(title,message,value=""){
+  return new Promise(resolve=>{
+    modal(title,`<p>${esc(message)}</p><input id="gridPromptInput" value="${esc(value)}">`,[
+      {label:"Cancel",onClick:()=>resolve(null)},
+      {label:"Save",primary:true,onClick:()=>resolve(document.getElementById("gridPromptInput")?.value??"")}
+    ]);
+    setTimeout(()=>{const i=document.getElementById("gridPromptInput");i?.focus();i?.select()},0);
+  });
+}
+
+/* ===================== HOME / FORM SUBMISSION ===================== */
+function formIdFromUrl(url){
+  try{
+    const u=new URL(url);
+    const m=u.pathname.match(/\/forms\/d\/e\/([^/]+)/);
+    return m?m[1]:null;
+  }catch(e){return null}
+}
+function submissionUrl(){
+  const id=formIdFromUrl(config.links.formViewUrl);
+  return id ? `https://docs.google.com/forms/d/e/${id}/formResponse` : null;
+}
+function renderHome(){
+  document.getElementById("homeTitle").textContent=config.links.formTitle||"GRID";
+  const form=document.getElementById("homeForm");
+  const fields=sortFields();
+  form.innerHTML=fields.length?fields.map(renderHomeField).join("")+
+    `<div id="homeSubmitWrap" style="margin-top:17px"><button class="submit-btn" id="submitEntry" type="submit">Submit entry</button></div>`:
+    `<div class="small">No form fields are configured yet. Open Settings → Form fields from an owner account.</div>`;
+  if(!fields.length)return;
+  form.onsubmit=submitHome;
+}
+function renderHomeField(f){
+  const req=f.required?" <span class='required'>*</span>":"";
+  const defaults=Array.isArray(f.defaultValues)?f.defaultValues.filter(v=>String(v).trim()!==""):[];
+  let control="";
+  if(defaults.length){
+    control=`<select name="${esc(f.id)}"><option value="">Choose ▾</option>${defaults.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
+  }else if(f.dataType==="choice"){
+    const opts=(f.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
+    if(f.choiceDisplay==="radio") control=`<div class="choice-list radio-list">${(f.options||[]).map(o=>`<label><input type="radio" name="${esc(f.id)}" value="${esc(o)}"> ${esc(o)}</label>`).join("")}</div>`;
+    else if(f.choiceDisplay==="checkboxes") control=`<div class="choice-list">${(f.options||[]).map(o=>`<label><input type="checkbox" name="${esc(f.id)}" value="${esc(o)}"> ${esc(o)}</label>`).join("")}</div>`;
+    else control=`<select name="${esc(f.id)}"><option value="">Choose ▾</option>${opts}</select>`;
+  }else if(f.dataType==="number") control=`<input name="${esc(f.id)}" type="number" min="${f.min??0}" step="any" placeholder="Enter a number > ${f.min??0}">`;
+  else if(f.dataType==="date") control=`<input name="${esc(f.id)}" type="date">`;
+  else control=`<input name="${esc(f.id)}" type="text" placeholder="Enter ${esc(f.label)}">`;
+  return `<div class="field"><label>${esc(f.label)}${req}</label>${control}</div>`;
+}
+async function submitHome(e){
+  e.preventDefault(); clearMessage("homeMessage");
+  const form=e.currentTarget, fields=sortFields();
+  if(!submissionUrl()){
+    showMessage("homeMessage","error","Google Form link is not configured correctly. Open Settings → Links.");
+    return;
+  }
+  if(!navigator.onLine){
+    showMessage("homeMessage","error","Couldn't reach Google. Check your connection and try again — nothing was saved yet.");
+    return;
+  }
+  const values={}; let invalid=null;
+  for(const f of fields){
+    let val;
+    if(f.choiceDisplay==="checkboxes" && f.dataType==="choice"){
+      val=[...form.querySelectorAll(`input[name="${CSS.escape(f.id)}"]:checked`)].map(x=>x.value);
+    }else if(f.choiceDisplay==="radio" && f.dataType==="choice"){
+      val=form.querySelector(`input[name="${CSS.escape(f.id)}"]:checked`)?.value||"";
+    }else{
+      const el=form.querySelector(`[name="${CSS.escape(f.id)}"]`);
+      val=el?.value??"";
+    }
+    values[f.id]=val;
+    const validationValue=Array.isArray(val)?val.join(", "):String(val);
+    if(f.required && !validationValue.trim()) { invalid=f; break; }
+    if(f.dataType==="number" && validationValue.trim() && Number(val)<Number(f.min??0)){invalid=f;break}
+  }
+  if(invalid){
+    showMessage("homeMessage","error",`${invalid.label} is required or has an invalid value.`);
+    const el=form.querySelector(`[name="${CSS.escape(invalid.id)}"]`); el?.focus(); return;
+  }
+  const target=document.getElementById("gridSubmitIframe");
+  const hidden=document.createElement("form");
+  hidden.method="POST"; hidden.action=submissionUrl(); hidden.target=target.name; hidden.style.display="none";
+  fields.forEach(f=>{
+    const value=values[f.id]??"";
+    if(f.choiceDisplay==="checkboxes" && f.dataType==="choice" && Array.isArray(value)){
+      value.forEach(v=>{const input=document.createElement("input");input.type="hidden";input.name=f.formEntryId;input.value=v;hidden.appendChild(input)});
+    }else{
+      const input=document.createElement("input");input.type="hidden";input.name=f.formEntryId;
+      input.value=Array.isArray(value)?value.join(", "):value;hidden.appendChild(input);
+    }
+  });
+  document.body.appendChild(hidden);
+  const btn=document.getElementById("submitEntry");btn.disabled=true;btn.textContent="Submitting…";
+  try{
+    hidden.submit();
+    await new Promise(r=>setTimeout(r,850));
+    showMessage("homeMessage","success","Submitted ✓");
+    form.reset();
+  }catch(err){
+    showMessage("homeMessage","error","Couldn't reach Google. Check your connection and try again — nothing was saved yet.");
+  }finally{
+    hidden.remove();btn.disabled=false;btn.textContent="Submit entry";
+  }
+}
+
+/* ===================== GOOGLE AUTH ===================== */
+let gisPromise=null, accessToken=null, tokenExpiresAt=0, accountEmail=null;
+let syncConfig=loadSyncConfig();
+
+function loadSyncConfig(){
+  const d={driveFileId:null,lastSyncedAt:null,wasConnected:false,accountEmail:null};
+  try{return {...d,...JSON.parse(localStorage.getItem(SYNC_KEY)||"{}")}}catch(e){return d}
+}
+function saveSyncConfig(){localStorage.setItem(SYNC_KEY,JSON.stringify(syncConfig))}
+function hasToken(){return !!accessToken && Date.now()<tokenExpiresAt-30000}
+function gisLoaded(){return !!(window.google?.accounts?.oauth2)}
+function loadGIS(){
+  if(gisLoaded())return Promise.resolve();
+  if(gisPromise)return gisPromise;
+  gisPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement("script");s.src="https://accounts.google.com/gsi/client";s.async=true;s.defer=true;
+    s.onload=resolve;s.onerror=()=>{gisPromise=null;reject(new Error("load-failed"))};document.head.appendChild(s);
+  });return gisPromise;
+}
+function requestToken(promptType="",hint=""){
+  return new Promise((resolve,reject)=>{
+    if(GRID_GOOGLE_CLIENT_ID.startsWith("YOUR_")){reject(new Error("client-id-missing"));return}
+    const cfg={client_id:GRID_GOOGLE_CLIENT_ID,scope:GOOGLE_SCOPES,callback:r=>{
+      if(r?.access_token){accessToken=r.access_token;tokenExpiresAt=Date.now()+(Number(r.expires_in)||3600)*1000;resolve(r.access_token)}
+      else reject(new Error(r?.error_description||r?.error||"No access token"))
+    },error_callback:err=>reject(new Error(err?.type||err?.message||"Sign-in cancelled"))};
+    if(hint)cfg.hint=hint;
+    google.accounts.oauth2.initTokenClient(cfg).requestAccessToken({prompt:promptType});
+  });
+}
+async function ensureGoogle(promptType="consent"){
+  try{
+    await loadGIS();
+    await requestToken(syncConfig.wasConnected?"":promptType,syncConfig.accountEmail||"");
+    await verifyAccount();
+    syncConfig.wasConnected=true;saveSyncConfig();return true;
+  }catch(e){
+    if(e.message==="client-id-missing") toast("Set the GRID OAuth Client ID in index.html before using Google access.");
+    else if(e.message==="load-failed") toast("Google sign-in needs an internet connection.");
+    else toast("Google sign-in was not completed.");
+    return false;
+  }
+}
+async function verifyAccount(){
+  const r=await googleRequest("https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)");
+  const d=await r.json();accountEmail=d.user?.emailAddress||syncConfig.accountEmail||null;
+  syncConfig.accountEmail=accountEmail;saveSyncConfig();return !!accountEmail;
+}
+async function googleRequest(url,opts={}){
+  if(!hasToken())throw Object.assign(new Error("auth-expired"),{status:401});
+  const res=await fetch(url,{...opts,headers:{...(opts.headers||{}),Authorization:"Bearer "+accessToken}});
+  if(!res.ok)throw Object.assign(new Error("Google request failed ("+res.status+")"),{status:res.status});
+  return res;
+}
+async function privateAccess(){
+  if(hasToken())return true;
+  if(!syncConfig.wasConnected)return await ensureGoogle("consent");
+  try{await loadGIS();await requestToken("",syncConfig.accountEmail||"");await verifyAccount();return true}catch(e){return await ensureGoogle("consent")}
+}
+async function disconnectGoogle(){
+  if(!await confirmDialog("Google access","Disconnect Google access? Nothing in the linked Sheet or Drive settings file will be deleted.","Disconnect"))return;
+  try{if(accessToken&&gisLoaded())google.accounts.oauth2.revoke(accessToken,()=>{})}catch(e){}
+  accessToken=null;tokenExpiresAt=0;syncConfig.wasConnected=false;saveSyncConfig();
+  renderReport();renderSettings();
+}
+
+/* ===================== SHEET DATA / REPORT ===================== */
+let reportRows=[];
+let reportHeaders=[];
+let reportFetchedAt=null;
+let reportLoading=false;
+let activeFilters={};
+
+function sheetIdFromUrl(url){
+  try{return new URL(url).pathname.match(/\/spreadsheets\/d\/([^/]+)/)?.[1]||null}catch(e){return null}
+}
+function gidFromUrl(url){
+  try{return new URL(url).searchParams.get("gid")||null}catch(e){return null}
+}
+async function fetchSheetData(){
+  const sid=sheetIdFromUrl(config.links.sheetUrl); if(!sid)throw new Error("bad-sheet-link");
+  const meta=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}?fields=sheets.properties`);
+  const md=await meta.json(); const gid=gidFromUrl(config.links.sheetUrl);
+  let sh=(md.sheets||[]).find(x=>String(x.properties?.sheetId)===String(gid)); if(!sh)sh=(md.sheets||[])[0]; if(!sh)throw new Error("sheet-not-found");
+  const title=sh.properties.title; const range=encodeURIComponent(`'${title.replace(/'/g,"''")}'`);
+  const vr=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`); const vd=await vr.json(); const values=vd.values||[];
+  if(!values.length)return {headers:[],rows:[]};
+  const headers=values[0].map(x=>String(x??""));
+  return {headers,rows:values.slice(1).map((row,i)=>{const o={__row:i+2};headers.forEach((h,j)=>o[h]=row[j]??"");return o;})};
+}
+function sheetValue(row,f){
+  const h=f.sheetHeader||f.label; return String(row[h]??"");
+}
+function uniqueSheetValues(f){
+  const s=new Set();reportRows.forEach(r=>{const v=sheetValue(r,f);if(v)s.add(v)});return [...s];
+}
+function currentColumnValues(){
+  const f=fieldById(config.reportLayout.columnsField);
+  if(!f)return [];
+  const base=(f.options||[]).slice();
+  uniqueSheetValues(f).forEach(v=>{if(!base.includes(v))base.push(v)});
+  const ticks=config.reportLayout.columnsValues||[];
+  return base.filter(v=>ticks.includes(v));
+}
+function aggregate(rows,field,aggregation=null){
+  const nums=rows.map(r=>Number(sheetValue(r,field))).filter(n=>Number.isFinite(n));
+  const a=aggregation||config.reportLayout.measureAggregations?.[field.id]||config.reportLayout.aggregation||"sum";
+  if(a==="count")return rows.length;
+  if(a==="distinct count")return new Set(rows.map(r=>sheetValue(r,field)).filter(Boolean)).size;
+  if(!nums.length)return null;
+  if(a==="average")return nums.reduce((x,y)=>x+y,0)/nums.length;
+  return nums.reduce((x,y)=>x+y,0);
+}
+function formatValue(v){
+  if(v===null||v===undefined||v==="")return "—";
+  const n=Number(v);return Number.isFinite(n)?n.toLocaleString(undefined,{maximumFractionDigits:2}):String(v);
+}
+function applyFilters(rows){
+  return rows.filter(r=>Object.entries(activeFilters).every(([fid,vals])=>{
+    if(!vals?.length)return true;const f=fieldById(fid);return vals.includes(sheetValue(r,f));
+  }));
+}
+function rowsOrder(f){
+  const vals=new Set(reportRows.map(r=>sheetValue(r,f)).filter(Boolean));
+  const ordered=(f.options||[]).filter(v=>vals.has(v));
+  [...vals].forEach(v=>{if(!ordered.includes(v))ordered.push(v)});
+  return ordered;
+}
+function buildReportModel(){
+  const rl=config.reportLayout, rowF=fieldById(rl.rowsField),colF=fieldById(rl.columnsField),valF=fieldById(rl.valueField);
+  if(!rowF||!colF||!valF)return null;
+  const rows=applyFilters(reportRows), rowVals=rowsOrder(rowF).filter(v=>rows.some(r=>sheetValue(r,rowF)===v)), colVals=currentColumnValues();
+  const matrix=rowVals.map(rv=>colVals.map(cv=>aggregate(rows.filter(r=>sheetValue(r,rowF)===rv&&sheetValue(r,colF)===cv),valF)));
+  const totals=colVals.map((cv,j)=>aggregate(rows.filter(r=>sheetValue(r,colF)===cv),valF));
+  return {rowF,colF,valF,rowVals,colVals,matrix,totals,rows};
+}
+function renderReportGrid(){
+  const wrap=document.getElementById("reportGridWrap"),m=buildReportModel();
+  if(!reportHeaders.length){wrap.innerHTML=`<div class="card report-empty">Click <b>Fetch</b> to read the linked Google Sheet. GRID does not read the Sheet merely because a Sheet link is configured.</div>`;return}
+  if(!m){wrap.innerHTML=`<div class="card report-empty">Configure Rows, Columns and Value in Settings → Report.</div>`;return}
+  if(!m.colVals.length){wrap.innerHTML=`<div class="card report-empty">No report columns are ticked. Configure them in Settings → Report.</div>`;return}
+  const sn=config.reportLayout.showSerialNumber;
+  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?"<th>#</th>":""}<th>${esc(m.rowF.label)}</th>${m.colVals.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  m.rowVals.forEach((rv,i)=>{h+=`<tr>${sn?`<td>${i+1}</td>`:""}<td><b>${esc(rv)}</b></td>${m.matrix[i].map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr>`});
+  h+=`<tr class="total-row">${sn?"<td></td>":""}<td>Grand total</td>${m.totals.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr></tbody></table></div>`;
+  wrap.innerHTML=h;
+}
+function renderReportFilters(){
+  const wrap=document.getElementById("reportFilters"),fid=config.reportLayout.filterField||null;
+  if(!fid){wrap.innerHTML="";return}
+  const f=fieldById(fid);if(!f){wrap.innerHTML="";return}
+  const vals=activeFilters[fid]||[];
+  const label=vals.length?`${f.label}: ${vals.length===1?vals[0]:vals.length+" selected"}`:`${f.label}: All`;
+  wrap.innerHTML=`<button class="filter-chip ${vals.length?"active":""}" data-filter="${esc(fid)}">${esc(label)} ▾</button>`;
+  wrap.querySelector("[data-filter]").onclick=()=>openFilterPicker(fid);
+}
+async function openFilterPicker(fid){
+  const f=fieldById(fid);if(!f)return;
+  const isPeriod=(config.reportLayout.periodField===fid)||/month|period|year/i.test(f.label);
+  const values=isPeriod?(f.options||[]):uniqueSheetValues(f);
+  const selected=new Set(activeFilters[fid]||[]);
+  const root=document.getElementById("modalRoot");
+  root.innerHTML=`<div class="modal-backdrop"><div class="modal center"><h3>${esc(f.label)}</h3><p>${isPeriod?"Choose one period.":"Choose one or more values; All means no filter."}</p>
+    <label class="check-item" style="margin-bottom:7px"><input type="checkbox" id="filterAll" ${selected.size?"":"checked"}> All</label>
+    <div class="check-grid">${values.map(v=>`<label class="check-item"><input type="checkbox" class="filterOpt" value="${esc(v)}" ${selected.has(v)?"checked":""}> ${esc(v)}</label>`).join("")}</div>
+    <div class="modal-actions"><button class="btn" id="filterCancel">Cancel</button><button class="btn primary" id="filterApply">Apply</button></div>
+  </div></div>`;
+  const all=root.querySelector("#filterAll");
+  root.querySelectorAll(".filterOpt").forEach(c=>c.addEventListener("change",()=>{if(c.checked)all.checked=false}));
+  all.onchange=()=>{if(all.checked)root.querySelectorAll(".filterOpt").forEach(c=>c.checked=false)};
+  root.querySelector("#filterCancel").onclick=()=>root.innerHTML="";
+  root.querySelector("#filterApply").onclick=()=>{
+    const vals=[...root.querySelectorAll(".filterOpt:checked")].map(x=>x.value);
+    activeFilters[fid]=vals;root.innerHTML="";renderReportFilters();renderReportGrid();
+  };
+}
+async function fetchReportData(buttonId="fetchReport"){
+  if(reportLoading)return; if(!(await privateAccess())){renderReport();return} if(!navigator.onLine){toast("Connect to the internet to fetch the report.");return}
+  reportLoading=true;const fb=document.getElementById(buttonId),rb=document.getElementById("refreshReport");if(fb){fb.disabled=true;fb.textContent="Fetching…"}if(rb)rb.disabled=true;const st=document.getElementById("reportStatus");if(st)st.textContent="Fetching Sheet…";
+  try{const result=await fetchSheetData();reportRows=result.rows;reportHeaders=result.headers;reportFetchedAt=new Date();if(st)st.textContent=`${reportRows.length.toLocaleString()} rows · fetched ${reportFetchedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;renderReportFilters();renderReportGrid();if(document.getElementById("view-settings")?.classList.contains("active")&&settingsTab==="report")renderSettingsTab();toast(`Fetched ${reportRows.length.toLocaleString()} rows from Google Sheet.`)}
+  catch(e){reportRows=[];reportHeaders=[];reportFetchedAt=null;if(st)st.textContent="";const msg=e.status===403||e.status===404?"You don't currently have access to this data. Ask the data owner to share the Google Sheet with your account, then try again.":"Couldn't read the linked Sheet. Check the Sheet link, sharing access, and Google connection.";document.getElementById("reportGridWrap").innerHTML=`<div class="card report-empty">${esc(msg)}</div>`}
+  finally{reportLoading=false;if(fb){fb.disabled=false;fb.textContent="↓ Fetch"}if(rb)rb.disabled=false}
+}
+async function refreshReport(){return fetchReportData("refreshReport")}
+function renderReport(){
+  const auth=document.getElementById("reportAuth"),body=document.getElementById("reportBody");
+  if(hasToken()||syncConfig.wasConnected){
+    auth.innerHTML=`<div class="card status-card"><span class="status-dot ${hasToken()?"ok":"warn"}"></span><div class="grow" style="flex:1"><div style="font-size:12px;font-weight:800">${hasToken()?"Google connected":"Google connection needs renewal"}</div><div class="small">${esc(syncConfig.accountEmail||"")}</div></div><button class="btn" id="reportConnect">${hasToken()?"Refresh access":"Connect Google"}</button></div>`;
+    body.classList.remove("hidden");document.getElementById("reportConnect").onclick=async()=>{await privateAccess();renderReport();if(hasToken()&&!reportRows.length)refreshReport()};
+    renderReportFilters();renderReportGrid();
+  }else{
+    auth.innerHTML=`<div class="card auth-card"><div class="auth-icon">G</div><h3>Private report</h3><p>Report data comes from the linked Google Sheet. Sign in with the data owner account, or an account the owner has shared with.</p><button class="btn primary" id="reportSignIn">Connect Google</button></div>`;
+    body.classList.add("hidden");document.getElementById("reportSignIn").onclick=async()=>{if(await privateAccess()){renderReport();refreshReport()}};
+  }
+  document.getElementById("reportTitle").textContent=config.links.formTitle||"GRID";
+}
+
+/* ===================== COPY / CSV EXPORT ===================== */
+function activeFilterLines(){
+  return Object.entries(activeFilters).filter(([,v])=>v?.length).map(([fid,vals])=>`${fieldById(fid)?.label||fid}: ${vals.join(", ")}`);
+}
+function csvEscape(v){const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
+function exportReportCSV(){
+  const m=buildReportModel();if(!m)return;
+  const lines=activeFilterLines(),out=[];
+  lines.forEach(x=>out.push(csvEscape(x)));
+  const sn=config.reportLayout.showSerialNumber;
+  out.push([...(sn?["#"]:[]),m.rowF.label,...m.colVals].map(csvEscape).join(","));
+  m.rowVals.forEach((rv,i)=>out.push([...(sn?[i+1]:[]),rv,...m.matrix[i]].map(csvEscape).join(",")));
+  out.push([...(sn?[""]:[]),"Grand total",...m.totals].map(csvEscape).join(","));
+  downloadBlob(out.join("\n"),`grid-report-${new Date().toISOString().slice(0,10)}.csv`,"text/csv;charset=utf-8");
+  toast("CSV exported");
+}
+async function loadHtml2Canvas(){
+  if(window.html2canvas)return window.html2canvas;
+  return new Promise((resolve,reject)=>{
+    const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";s.onload=()=>resolve(window.html2canvas);s.onerror=reject;document.head.appendChild(s);
+  });
+}
+async function reportImageBlob(includeFilters){
+  const src=document.getElementById("reportCapture");if(!src)throw new Error("no-grid");
+  const fn=await loadHtml2Canvas();
+  const box=document.createElement("div");box.style.cssText="position:fixed;left:-100000px;top:0;background:#fff;padding:18px;width:max-content;min-width:100%;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;color:#182335";
+  const title=document.createElement("div");title.innerHTML=`<div style="font-size:18px;font-weight:800;margin-bottom:3px">${esc(config.links.formTitle||"GRID")}</div><div style="font-size:11px;color:#66758a;margin-bottom:12px">GRID Report</div>`;
+  box.appendChild(title);
+  if(includeFilters){const fs=activeFilterLines();if(fs.length){const f=document.createElement("div");f.style.cssText="font-size:11px;margin-bottom:10px;color:#3f526b";f.textContent=fs.join("  •  ");box.appendChild(f)}}
+  box.appendChild(src.cloneNode(true));document.body.appendChild(box);
+  const canvas=await fn(box,{backgroundColor:"#fff",scale:2,useCORS:true});box.remove();
+  return new Promise(r=>canvas.toBlob(r,"image/png"));
+}
+async function copyReport(){
+  const first=await choiceDialog("Copy report","Choose what to include.",[
+    {label:"Grid only",value:"grid",primary:true},{label:"Grid + filters",value:"filters"}
+  ]);if(!first)return;
+  let includeFilters=first==="filters";
+  if(includeFilters){
+    const fs=activeFilterLines();
+    if(fs.length){
+      const selected=await chooseFilterLines(fs);if(selected===null)return;
+      activeFilters._copy=selected;
+    }
+  }
+  const dest=await choiceDialog("Image destination","Choose where the report image should go.",[
+    {label:"Copy image to clipboard",value:"clipboard",primary:true},
+    {label:"Save image file",value:"save"},
+    ...(navigator.share?[{label:"Share",value:"share"}]:[])
+  ]);if(!dest)return;
+  try{
+    let blob;
+    if(activeFilters._copy){const saved=clone(activeFilters);activeFilters={};saved._copy.forEach(x=>{const [label,rest]=x.split(": ");const f=config.fields.find(z=>z.label===label);if(f)activeFilters[f.id]=rest.split(", ")});blob=await reportImageBlob(true);activeFilters=saved;delete activeFilters._copy}else blob=await reportImageBlob(includeFilters);
+    if(dest==="clipboard"&&navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);toast("Image copied to clipboard")}
+    else if(dest==="share"&&navigator.share){const file=new File([blob],`grid-report-${Date.now()}.png`,{type:"image/png"});await navigator.share({title:config.links.formTitle||"GRID Report",files:[file]})}
+    else{downloadBlob(blob,`grid-report-${new Date().toISOString().slice(0,10)}.png`,"image/png");toast("Image saved")}
+  }catch(e){toast("Could not create the report image. Try again.");delete activeFilters._copy}
+}
+function chooseFilterLines(lines){
+  return new Promise(resolve=>{
+    const root=document.getElementById("modalRoot");
+    root.innerHTML=`<div class="modal-backdrop"><div class="modal center"><h3>Include filters</h3><p>Select exactly which active filters should appear in the image.</p><div class="check-grid">${lines.map((x,i)=>`<label class="check-item"><input type="checkbox" data-fi="${i}" checked> ${esc(x)}</label>`).join("")}</div><div class="modal-actions"><button class="btn" id="cfCancel">Cancel</button><button class="btn primary" id="cfApply">Continue</button></div></div></div>`;
+    root.querySelector("#cfCancel").onclick=()=>{root.innerHTML="";resolve(null)};
+    root.querySelector("#cfApply").onclick=()=>{const s=[...root.querySelectorAll("[data-fi]:checked")].map(x=>lines[+x.dataset.fi]);root.innerHTML="";resolve(s)};
+  });
+}
+function downloadBlob(content,filename,type){
+  const blob=content instanceof Blob?content:new Blob([content],{type});const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)
+}
+
+/* ===================== SETTINGS UI ===================== */
+let settingsTab="links";
+function renderSettings(){
+  const auth=document.getElementById("settingsAuth"),priv=document.getElementById("settingsPrivate");
+  // Settings configuration is local to this device and must remain visible even
+  // before Google authentication. Google access is required only for Sheet/Drive
+  // operations (Report fetch and Sync).
+  if(hasToken()){
+    auth.innerHTML=`<div class="card status-card"><span class="status-dot ok"></span><div style="flex:1"><div style="font-size:12px;font-weight:800">Google connected</div><div class="status-email">${esc(syncConfig.accountEmail||"Google account")}</div></div><button class="btn" id="settingsConnect">Disconnect</button></div>`;
+  }else{
+    auth.innerHTML=`<div class="card auth-card" style="padding:12px 14px;margin-bottom:12px"><div style="display:flex;align-items:center;gap:10px"><div class="auth-icon" style="width:34px;height:34px;font-size:14px">G</div><div style="flex:1"><div style="font-size:12px;font-weight:800">Google connection not required for local settings</div><div class="small">Links and Form Fields can be configured now. Connect Google when you want to fetch the Sheet or use Drive Sync.</div></div><button class="btn primary" id="settingsSignIn">Connect Google</button></div></div>`;
+  }
+  priv.classList.remove("hidden");
+  document.querySelectorAll("#settingsTabs button").forEach(b=>b.classList.toggle("active",b.dataset.tab===settingsTab));
+  renderSettingsTab();
+  document.getElementById("settingsResetArea").innerHTML="";
+  const connect=document.getElementById("settingsConnect");
+  if(connect)connect.onclick=async()=>{await disconnectGoogle();renderSettings()};
+  const signIn=document.getElementById("settingsSignIn");
+  if(signIn)signIn.onclick=async()=>{if(await privateAccess())renderSettings()};
+}
+function renderSettingsTab(){
+  document.querySelectorAll("#settingsTabs button").forEach(b=>{
+    b.classList.toggle("active", b.dataset.tab===settingsTab);
+    b.onclick=()=>{settingsTab=b.dataset.tab;renderSettingsTab()};
+  });
+  const c=document.getElementById("settingsContent");
+  if(settingsTab==="links")c.innerHTML=renderLinksTab();
+  if(settingsTab==="fields")c.innerHTML=renderFieldsTab();
+  if(settingsTab==="report")c.innerHTML=renderReportSettingsTab();
+  if(settingsTab==="sync")c.innerHTML=renderSyncTab();
+  bindSettingsTab();
+}
+function renderLinksTab(){
+  return `<div class="settings-section"><div class="section-title">Links</div>
+    <div class="card">
+      <div class="field"><label>Google Form link</label><input id="cfgFormUrl" value="${esc(config.links.formViewUrl)}" placeholder="https://docs.google.com/forms/d/e/.../viewform"><div class="field-hint">Use the public <b>viewform</b> URL.</div></div>
+      <div class="field"><label>Google Sheet link</label><input id="cfgSheetUrl" value="${esc(config.links.sheetUrl)}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"></div>
+      <div class="field"><label>Form title</label><input id="cfgFormTitle" value="${esc(config.links.formTitle)}" placeholder="Enter form title"></div>
+      <button class="btn primary" id="saveLinks" style="width:100%;margin-top:5px">Save links</button>
+    </div></div>`;
+}
+function renderFieldsTab(){
+  return `<div class="settings-section"><div class="section-title">Form Fields</div>
+    <div class="info-box"><b>Pre-fill helper:</b> open the Form in edit mode → ⋮ → <b>Pre-fill form</b> → enter recognizable values → Get Link. Paste that full URL below. GRID detects every <code>entry.NNNNNNN=value</code> automatically.</div>
+    <div class="card">
+      <div class="field"><label>Paste a pre-filled link</label><textarea id="prefillUrl" placeholder="Paste the full pre-filled Google Form URL here"></textarea></div>
+      <button class="btn" id="parsePrefill">Detect entry IDs</button>
+      <div id="detectedEntries" class="detected"></div>
+    </div>
+    <details class="instructions" style="margin-bottom:12px"><summary>How to get the pre-filled link</summary>
+      <ol><li>Open the Form in <b>edit mode</b>, not the public fill-out link.</li><li>Open ⋮ → <b>Pre-fill form</b> (or Get pre-filled link).</li><li>Type short recognizable values into every question.</li><li>Click <b>Get Link</b> and copy the full URL.</li><li>Paste it here. Tap a detected entry ID to assign it to a field.</li></ol>
+    </details>
+    <div id="fieldList"></div>
+    <button class="btn primary" id="addField" style="width:100%">＋ Add field</button>
+    <button class="btn" id="saveFields" style="width:100%;margin-top:8px">Save form fields</button>
+    <div class="settings-section" style="margin-top:14px">
+      <div class="section-title">Default values shown on Home</div>
+      <div class="small" style="margin-bottom:8px">Configure the dropdown values that appear against each field on Home. Nothing on Home is hardcoded.</div>
+      <div id="defaultValueList"></div>
+      <button class="btn primary" id="addDefaultValue" style="width:100%;margin-top:8px">＋ Add default value</button>
+      <button class="btn" id="saveDefaults" style="width:100%;margin-top:8px">Save default values</button>
+    </div>
+  </div>`;
+}
+function renderFieldRows(){
+  const wrap=document.getElementById("fieldList");if(!wrap)return;
+  wrap.innerHTML=sortFields().map((f,i)=>`
+    <div class="settings-row" data-field="${esc(f.id)}">
+      <div class="settings-row-head">
+        <div class="grow"><div class="settings-row-title">${esc(f.label||"Unnamed field")}</div><div class="settings-row-sub">${esc(f.dataType)} · ${esc(f.formEntryId||"entry ID missing")} · ${f.required?"Required":"Optional"}</div></div>
+        <div class="field-actions">
+          <button class="icon-btn" data-up ${i===0?"disabled":""}>▲</button><button class="icon-btn" data-down ${i===sortFields().length-1?"disabled":""}>▼</button>
+          <button class="icon-btn" data-edit>✎</button><button class="icon-btn danger-icon" data-delete>×</button>
+        </div>
+      </div>
+      <div class="field-edit hidden">
+        <div class="field-edit-grid">
+          <div class="field"><label>Label</label><input data-prop="label" value="${esc(f.label)}"></div>
+          <div class="field"><label>Data type</label><select data-prop="dataType"><option value="text" ${f.dataType==="text"?"selected":""}>Text</option><option value="number" ${f.dataType==="number"?"selected":""}>Number</option><option value="date" ${f.dataType==="date"?"selected":""}>Date</option><option value="choice" ${f.dataType==="choice"?"selected":""}>Choice</option></select></div>
+          <div class="field"><label>Form entry ID</label><input data-prop="formEntryId" value="${esc(f.formEntryId||"")}" placeholder="entry.123456789"></div>
+          <div class="field"><label>Exact Sheet column header</label><input data-prop="sheetHeader" value="${esc(f.sheetHeader||f.label||"")}"></div>
+          <div class="field"><label>Required</label><select data-prop="required"><option value="true" ${f.required?"selected":""}>Required</option><option value="false" ${!f.required?"selected":""}>Optional</option></select></div>
+          <div class="field"><label>Minimum (Number)</label><input data-prop="min" type="number" value="${f.min??""}" placeholder="0"></div>
+          <div class="field wide choice-only"><label>Choice display</label><select data-prop="choiceDisplay"><option value="dropdown" ${f.choiceDisplay==="dropdown"?"selected":""}>Dropdown</option><option value="radio" ${f.choiceDisplay==="radio"?"selected":""}>Radio buttons</option><option value="checkboxes" ${f.choiceDisplay==="checkboxes"?"selected":""}>Checkboxes</option></select></div>
+        </div>
+        <div class="choice-options choice-only"><label style="font-size:11px;font-weight:800;color:var(--text-faint)">Choice options</label><div class="option-list">${(f.options||[]).map((o,j)=>`<div class="option-row"><input data-opt="${j}" value="${esc(o)}"><button class="icon-btn" data-delopt="${j}">×</button></div>`).join("")}</div><button class="add-link" data-addopt>＋ Add option</button></div>
+        <button class="btn primary" data-savefield style="margin-top:9px">Save field</button>
+      </div>
+    </div>`).join("");
+  wrap.querySelectorAll("[data-field]").forEach(row=>{
+    const id=row.dataset.field,f=fieldById(id);
+    row.querySelector("[data-edit]").onclick=()=>row.querySelector(".field-edit").classList.toggle("hidden");
+    row.querySelector("[data-up]")?.addEventListener("click",()=>moveField(id,-1));
+    row.querySelector("[data-down]")?.addEventListener("click",()=>moveField(id,1));
+    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
+    row.querySelector("[data-savefield]").onclick=()=>saveFieldRow(row,f);
+    row.querySelectorAll("[data-prop]").forEach(el=>el.addEventListener("change",()=>{row.querySelectorAll(".choice-only").forEach(x=>x.style.display=(row.querySelector('[data-prop="dataType"]').value==="choice"?"block":"none"))}));
+    row.querySelectorAll("[data-prop]").forEach(el=>{if(el.dataset.prop==="dataType")el.dispatchEvent(new Event("change"))});
+    row.querySelectorAll("[data-delopt]").forEach(b=>b.onclick=()=>{f.options.splice(+b.dataset.delopt,1);saveConfig();renderSettingsTab()});
+    row.querySelector("[data-addopt]").onclick=()=>{f.options ||= [];f.options.push("New option");saveConfig();renderSettingsTab()};
+  });
+}
+function saveFieldRow(row,f){
+  row.querySelectorAll("[data-prop]").forEach(el=>{
+    const p=el.dataset.prop,v=el.value;
+    if(p==="required")f[p]=v==="true";else if(p==="min")f[p]=v===""?null:Number(v);else f[p]=v;
+  });
+  f.options=[...row.querySelectorAll("[data-opt]")].map(x=>x.value).filter(Boolean);
+  f.defaultValues ||= [];
+  if(!f.sheetHeader)f.sheetHeader=f.label;
+  saveConfig();renderSettingsTab();toast("Field saved");
+}
+function moveField(id,delta){
+  const a=sortFields(),i=a.findIndex(f=>f.id===id),j=i+delta;if(j<0||j>=a.length)return;[a[i].order,a[j].order]=[a[j].order,a[i].order];saveConfig();renderSettingsTab()
+}
+function addField(){
+  config.fields.push({id:uid(),label:"",order:config.fields.length+1,dataType:"text",choiceDisplay:"dropdown",options:[],defaultValues:[],formEntryId:"",required:false,min:null,sheetHeader:""});saveConfig();renderSettingsTab()
+}
+let defaultDraftRows=null;
+function allDefaultRows(){
+  if(Array.isArray(config.defaultValueRows)) return clone(config.defaultValueRows);
+  const rows=[];
+  sortFields().forEach(f=>(f.defaultValues||[]).forEach(v=>rows.push({fieldId:f.id,value:String(v)})));
+  return rows;
+}
+function ensureDefaultDraftRows(){
+  if(defaultDraftRows===null) defaultDraftRows=clone(allDefaultRows());
+  defaultDraftRows=defaultDraftRows.filter(r=>fieldById(r.fieldId));
+  return defaultDraftRows;
+}
+function defaultInputForField(f,value){
+  const type=f?.dataType==="number"?"number":f?.dataType==="date"?"date":"text";
+  const min=type==="number"&&f?.min!=null?` min="${esc(f.min)}"`:"";
+  return `<input data-default-value type="${type}"${min} value="${esc(value||"")}" placeholder="Enter default value">`;
+}
+function renderDefaultValues(){
+  const wrap=document.getElementById("defaultValueList");if(!wrap)return;
+  const rows=ensureDefaultDraftRows();
+  if(!rows.length){wrap.innerHTML=`<div class="small" style="padding:10px 0">No default values configured yet.</div>`;return;}
+  wrap.innerHTML=rows.map((r,i)=>{
+    const f=fieldById(r.fieldId)||sortFields()[0];
+    return `<div class="default-row" data-default-row data-index="${i}">
+      <div class="field" style="margin:0;flex:1;min-width:0"><label>Field</label><select data-default-field>${selectFieldOptions(r.fieldId)}</select></div>
+      <div class="field" style="margin:0;flex:1;min-width:0"><label>Value</label>${defaultInputForField(f,r.value)}</div>
+      <div class="default-actions"><button class="icon-btn" data-default-up ${i===0?"disabled":""}>▲</button><button class="icon-btn" data-default-down ${i===rows.length-1?"disabled":""}>▼</button><button class="icon-btn danger-icon" data-default-delete>×</button></div>
+    </div>`;
+  }).join("");
+  wrap.querySelectorAll("[data-default-row]").forEach(row=>bindDefaultRow(row));
+}
+function syncDefaultDraftRow(row){
+  const i=+row.dataset.index;
+  if(!defaultDraftRows?.[i])return;
+  defaultDraftRows[i].fieldId=row.querySelector("[data-default-field]")?.value||defaultDraftRows[i].fieldId;
+  defaultDraftRows[i].value=row.querySelector("[data-default-value]")?.value||"";
+}
+function bindDefaultRow(row){
+  const fieldSel=row.querySelector("[data-default-field]");
+  const valueEl=row.querySelector("[data-default-value]");
+  fieldSel?.addEventListener("change",()=>{
+    const i=+row.dataset.index;
+    const val=valueEl?.value||"";
+    const fid=fieldSel.value;
+    const f=fieldById(fid);
+    if(defaultDraftRows?.[i]){defaultDraftRows[i].fieldId=fid;defaultDraftRows[i].value=val;}
+    row.querySelector("[data-default-value]")?.replaceWith(document.createRange().createContextualFragment(defaultInputForField(f,val)).firstElementChild);
+    bindDefaultRow(row);
+  });
+  row.querySelector("[data-default-value]")?.addEventListener("input",()=>syncDefaultDraftRow(row));
+  row.querySelector("[data-default-up]")?.addEventListener("click",()=>moveDefaultRow(+row.dataset.index,-1));
+  row.querySelector("[data-default-down]")?.addEventListener("click",()=>moveDefaultRow(+row.dataset.index,1));
+  row.querySelector("[data-default-delete]")?.addEventListener("click",async()=>{
+    if(await confirmDialog("Delete default value","Delete this default value?","Delete")) deleteDefaultRow(+row.dataset.index);
+  });
+}
+function moveDefaultRow(index,delta){
+  const rows=ensureDefaultDraftRows(),j=index+delta;if(j<0||j>=rows.length)return;
+  [rows[index],rows[j]]=[rows[j],rows[index]];
+  renderSettingsTab();
+}
+function deleteDefaultRow(index){
+  const rows=ensureDefaultDraftRows();rows.splice(index,1);renderSettingsTab();
+}
+function addDefaultValue(){
+  const fields=sortFields();if(!fields.length){toast("Add a form field first.");return;}
+  const rows=ensureDefaultDraftRows();
+  // Always append the new row to the bottom of the default-value list.
+  rows.push({fieldId:fields[0].id,value:""});
+  renderSettingsTab();
+  requestAnimationFrame(()=>{
+    const visibleRows=document.querySelectorAll("[data-default-row]");
+    visibleRows[visibleRows.length-1]?.scrollIntoView({behavior:"smooth",block:"center"});
+    visibleRows[visibleRows.length-1]?.querySelector("[data-default-value]")?.focus();
+  });
+}
+function saveDefaultValuesFromUI(){
+  const rows=ensureDefaultDraftRows().map(r=>({fieldId:r.fieldId,value:String(r.value??"")})).filter(r=>r.value.trim()!=="");
+  sortFields().forEach(f=>f.defaultValues=[]);
+  rows.forEach(r=>{const f=fieldById(r.fieldId);if(f)f.defaultValues.push(r.value);});
+  config.defaultValueRows=clone(rows);
+  defaultDraftRows=null;
+  saveConfig();renderHome();renderSettingsTab();toast("Default values saved");
+}
+let detectedPrefill=[];
+function parsePrefill(){
+  const url=document.getElementById("prefillUrl").value.trim();detectedPrefill=[];
+  try{const u=new URL(url);for(const [k,v] of u.searchParams.entries())if(/^entry\.\d+$/.test(k))detectedPrefill.push({id:k,value:v})}catch(e){}
+  const wrap=document.getElementById("detectedEntries");
+  wrap.innerHTML=detectedPrefill.length?detectedPrefill.map((x,i)=>{const match=sortFields().find(f=>f.formEntryId===x.id);return `<div class="detected-entry"><div><b>${esc(x.id)}</b><div class="small">you typed: ${esc(x.value)}</div></div><select data-det="${i}">${sortFields().map(f=>`<option value="${esc(f.id)}" ${match?.id===f.id?"selected":""}>${esc(f.label)}</option>`).join("")}</select></div>`}).join(""):`<span class="small">No entry IDs detected yet.</span>`;
+  wrap.querySelectorAll("[data-det]").forEach(sel=>sel.onchange=()=>assignDetected(+sel.dataset.det,sel.value));
+}
+function assignDetected(i,id){const d=detectedPrefill[i],f=fieldById(id);if(!d||!f)return;f.formEntryId=d.id;saveConfig();parsePrefill();renderFieldRows();toast(`${d.id} assigned to ${f.label}`)}
+
+/* ===================== REPORT SETTINGS ===================== */
+function selectFieldOptions(selected,filter=""){
+  return sortFields().filter(f=>!filter||f.dataType===filter).map(f=>`<option value="${esc(f.id)}" ${f.id===selected?"selected":""}>${esc(f.label)}</option>`).join("");
+}
+function renderReportSettingsTab(){
+  const rl=config.reportLayout;
+  const cf=fieldById(rl.columnsField);
+  const vals=cf?Array.from(new Set([...(cf.options||[]),...uniqueSheetValues(cf)])):[];
+  const ticks=rl.columnsValues||[];
+  const fetched=reportHeaders.length>0;
+  const numericFields=sortFields().filter(f=>f.dataType==="number");
+  return `<div class="settings-section">
+    <div class="section-title">Report layout</div>
+    <div class="fetch-box">
+      <button class="btn primary" id="fetchReportSettings" style="width:100%;margin-bottom:8px">↓ Fetch Sheet data</button>
+      <b>${fetched?"✓ Data available":"Fetch Sheet data first"}</b><br>
+      ${esc(fetched?`Sheet fetched: ${reportHeaders.length} columns · ${reportRows.length.toLocaleString()} data rows${reportFetchedAt?` · ${reportFetchedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`:""}`:"Sheet data has not been fetched yet. Click Fetch Sheet data after connecting Google.")}
+    </div>
+    <div class="card">
+      <div class="field"><label>Rows</label><select id="rlRows" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.rowsField)}</select></div>
+      <div class="field"><label>Columns</label><select id="rlCols" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.columnsField)}</select></div>
+      <div class="field">
+        <label>Column values · select multiple</label>
+        <div class="check-grid" id="columnTicks">
+          ${vals.length?vals.map(v=>`<label class="check-item"><input type="checkbox" value="${esc(v)}" ${ticks.includes(v)?"checked":""} ${fetched?"":"disabled"}> ${esc(v)}</label>`).join(""):`<span class="small">Fetch the Sheet and choose a Columns field first.</span>`}
+        </div>
+      </div>
+      <div class="field"><label>Value (numeric field)</label><select id="rlValue" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.valueField,"number")}</select></div>
+      <div class="field">
+        <label>Aggregation</label>
+        <select id="rlAgg" ${fetched?"":"disabled"}>
+          <option value="sum" ${rl.aggregation==="sum"?"selected":""}>Sum</option>
+          <option value="average" ${rl.aggregation==="average"?"selected":""}>Average</option>
+          <option value="count" ${rl.aggregation==="count"?"selected":""}>Count</option>
+          <option value="distinct count" ${rl.aggregation==="distinct count"?"selected":""}>Distinct count</option>
+        </select>
+        <div class="field-hint">Aggregation is available only for numeric fields.</div>
+      </div>
+      <div class="field">
+        <label>Aggregation by numeric field</label>
+        <div class="small" style="margin-bottom:6px">Configure an aggregation only for numeric fields.</div>
+        <div id="measureConfig">${renderMeasureConfig()}</div>
+      </div>
+      <div class="field"><label>Filters</label><select id="rlFilter" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.filterField)}</select></div>
+      <div class="field"><label>Period-style filter field</label><select id="rlPeriod" ${fetched?"":"disabled"}><option value="">Auto detect</option>${selectFieldOptions(rl.periodField)}</select></div>
+      <label class="check-item" style="margin-top:8px"><input id="rlSerial" type="checkbox" ${rl.showSerialNumber?"checked":""}> Show serial number column</label>
+      <button class="btn primary" id="saveReportLayout" style="width:100%;margin-top:12px">Save report layout</button>
+    </div>
+  </div>`;
+}
+function renderMeasureConfig(){
+  config.reportLayout.measureAggregations ||= {};
+  const numericFields=sortFields().filter(f=>f.dataType==="number");
+  if(!numericFields.length)return `<div class="small">No numeric fields are configured yet.</div>`;
+  return numericFields.map(f=>{
+    const agg=config.reportLayout.measureAggregations[f.id]||"sum";
+    return `<div class="default-row">
+      <div style="flex:1;font-size:11px;font-weight:800">${esc(f.label||"Unnamed field")}</div>
+      <select data-measure-agg="${esc(f.id)}">
+        <option value="sum" ${agg==="sum"?"selected":""}>Sum</option>
+        <option value="average" ${agg==="average"?"selected":""}>Average</option>
+        <option value="count" ${agg==="count"?"selected":""}>Count</option>
+        <option value="distinct count" ${agg==="distinct count"?"selected":""}>Distinct count</option>
+      </select>
+    </div>`;
+  }).join("");
+}
+
+/* ===================== DRIVE SETTINGS SYNC ===================== */
+function canonicalConfig(){const c=clone(config);c.grid_version=GRID_VERSION;return c}
+function hashString(str){
+  let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677)}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)
+}
+function configHash(c){return hashString(JSON.stringify(c))}
+function loadBase(fileId){try{const x=JSON.parse(localStorage.getItem(SYNC_BASE_KEY)||"null");return x&&x.fileId===fileId?x.snapshot:null}catch(e){return null}}
+function saveBase(fileId,c){localStorage.setItem(SYNC_BASE_KEY,JSON.stringify({fileId,snapshot:clone(c),hash:configHash(c)}))}
+async function driveFiles(){
+  const q=encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+  const r=await googleRequest(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime%20desc&fields=files(id,name,modifiedTime)&spaces=drive`);
+  return (await r.json()).files||[];
+}
+async function driveDownload(id){return (await googleRequest(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)).text()}
+async function driveUpload(id,content){
+  const boundary="gridboundary"+Date.now(),meta={name:DRIVE_FILE_NAME,mimeType:"application/json"};
+  const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
+  const url=id?`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+  const r=await googleRequest(url,{method:id?"PATCH":"POST",headers:{"Content-Type":`multipart/related; boundary=${boundary}`},body});return r.json()
+}
+function mergeConfig(local,remote,base){
+  const out=clone(local||remote);
+  if(!base)return out;
+  ["links","fields","reportLayout"].forEach(k=>{
+    const l=configHash(local?.[k]||null),r=configHash(remote?.[k]||null),b=configHash(base?.[k]||null);
+    if(l===b&&r!==b)out[k]=clone(remote[k]);
+    else if(l!==b&&r===b)out[k]=clone(local[k]);
+    else if(l!==r&&l!==b&&r!==b)out[k]=clone(local[k]); // PET-style local-wins conflict for the same section
+  });
+  return out;
+}
+async function driveSyncNow(){
+  if(!navigator.onLine){toast("Connect to the internet before syncing.");return}
+  if(!hasToken()){if(!(await privateAccess()))return}
+  const files=await driveFiles();let fileId=syncConfig.driveFileId&&files.some(f=>f.id===syncConfig.driveFileId)?syncConfig.driveFileId:(files[0]?.id||null);
+  if(files.length>1){
+    const choice=await choiceDialog("Multiple GRID settings files",`Google Drive has ${files.length} files named "${DRIVE_FILE_NAME}". GRID will use the newest/remembered file.`,[{label:"Cancel",value:"cancel"},{label:"Continue",value:"go",primary:true}]);if(choice!=="go")return;
+  }
+  let remote=null;if(fileId){try{remote=JSON.parse(await driveDownload(fileId))}catch(e){toast("The GRID settings file on Drive is not valid JSON.");return}}
+  const local=canonicalConfig(),base=fileId?loadBase(fileId):null,lh=configHash(local),rh=remote?configHash(remote):null,bh=base?configHash(base):null;
+  let finalConfig=local,upload=true;
+  if(!remote){upload=true}
+  else if(lh===rh){upload=false}
+  else if(base&&lh===bh&&rh!==bh){finalConfig=remote;upload=false;await toastAsync("Drive has newer settings. Restoring them…")}
+  else if(base&&lh!==bh&&rh===bh){upload=true}
+  else if(base&&lh!==bh&&rh!==bh){const choice=await choiceDialog("Both sides changed","This device and Google Drive both changed since the last sync. Choose how to continue.",[
+      {label:"Cancel",value:"cancel"},{label:"Keep this device",value:"local"},{label:"Merge",value:"merge",primary:true}]);if(choice==="cancel")return;if(choice==="merge")finalConfig=mergeConfig(local,remote,base);upload=true}
+  else if(!base){const choice=await choiceDialog("Drive already has settings","This device and Google Drive both have settings, but this device has no previous sync baseline.",[{label:"Cancel",value:"cancel"},{label:"Use Drive",value:"remote"},{label:"Overwrite Drive",value:"local",primary:true}]);if(choice==="cancel")return;if(choice==="remote"){finalConfig=remote;upload=false}}
+  config=clone(finalConfig);saveConfig();
+  if(upload){const r=await driveUpload(fileId,JSON.stringify(canonicalConfig()));fileId=r.id||fileId}
+  if(fileId)saveBase(fileId,canonicalConfig());
+  syncConfig.driveFileId=fileId;syncConfig.lastSyncedAt=new Date().toISOString();syncConfig.wasConnected=true;saveSyncConfig();
+  renderHome();renderReport();renderSettings();toast(upload?"Synced settings to Google Drive.":"Settings restored from Google Drive.");
+}
+function toastAsync(msg){toast(msg);return Promise.resolve()}
+async function exportSettings(){
+  downloadBlob(JSON.stringify(canonicalConfig(),null,2),`grid-settings-${new Date().toISOString().slice(0,10)}.json`,"application/json");toast("Settings exported")
+}
+function importSettings(){
+  const i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=async()=>{
+    const f=i.files?.[0];if(!f)return;
+    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};config=c;config.grid_version=GRID_VERSION;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
+    catch(e){toast("That file is not a valid GRID settings backup.")}
+  };i.click()
+}
+function renderSyncTab(){
+  const connected=hasToken(),expired=!connected&&syncConfig.wasConnected,when=syncConfig.lastSyncedAt?new Date(syncConfig.lastSyncedAt).toLocaleString():"Never";
+  return `<div class="settings-section"><div class="section-title">Google Drive Sync</div>
+    <div class="card">
+      <div class="settings-row" style="margin:0 0 9px">
+        <div class="settings-row-head"><span class="status-dot ${connected?"ok":expired?"warn":""}"></span><div class="grow"><div class="settings-row-title">${connected?"Connected":expired?"Reconnect needed":"Not connected"}</div><div class="settings-row-sub">Last synced ${esc(when)}${syncConfig.accountEmail?` · ${esc(syncConfig.accountEmail)}`:""}</div></div><button class="btn" id="syncConnect">${connected?"Disconnect":"Connect"}</button></div>
+      </div>
+      <button class="btn primary" id="syncNow" style="width:100%" ${connected||expired?"":"disabled"}>↻ Sync now</button>
+      <div class="small" style="margin-top:8px">Only GRID's own configuration is synchronized: Links, Form Fields, Default Values and Report layout. Google login/token data is never written to the exported settings file.</div>
+    </div>
+    <div class="section-title">Backup / transfer settings</div>
+    <div class="card">
+      <div style="display:flex;gap:8px"><button class="btn" id="exportSettings" style="flex:1">⇩ Export .json</button><button class="btn" id="importSettings" style="flex:1">⇧ Import .json</button></div>
+      <div class="small" style="margin-top:8px">Use this to move the GRID configuration to another device. The receiving device connects its own Google account separately.</div>
+    </div>
+    ${GRID_GOOGLE_CLIENT_ID.startsWith("YOUR_")?`<div class="info-box"><b>Deployment setup:</b> replace <code>YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com</code> near the top of index.html with a Google OAuth Web Client ID configured for this deployment. This placeholder is deliberately not stored in exported settings.</div>`:""}
+    <div class="section-title" style="margin-top:14px">Reset data</div>
+    <div class="card reset-card"><p class="small">Reset all GRID settings stored on this device and return the app to a completely empty initial state. Google Form, Sheet and Drive data are not deleted.</p><button class="btn danger" id="resetAppData" style="width:100%;margin-top:8px">Reset app data</button></div>
+  </div>`;
+}
+
+/* ===================== SETTINGS BINDINGS ===================== */
+function bindSettingsTab(){
+  if(settingsTab==="links"){
+    document.getElementById("saveLinks").onclick=()=>{
+      config.links.formViewUrl=document.getElementById("cfgFormUrl").value.trim();
+      config.links.sheetUrl=document.getElementById("cfgSheetUrl").value.trim();
+      config.links.formTitle=document.getElementById("cfgFormTitle").value.trim()||"GRID";
+      saveConfig();renderHome();renderReport();document.getElementById("aboutFormTitle").textContent=config.links.formTitle;toast("Links saved")
+    };
+  }
+  if(settingsTab==="fields"){document.getElementById("parsePrefill").onclick=parsePrefill;document.getElementById("addField").onclick=addField;document.getElementById("saveFields").onclick=()=>{sortFields().forEach((f,i)=>f.order=i+1);saveConfig();renderHome();toast("Form fields saved")};document.getElementById("addDefaultValue").onclick=addDefaultValue;document.getElementById("saveDefaults").onclick=saveDefaultValuesFromUI;renderFieldRows();renderDefaultValues()}
+  if(settingsTab==="report"){
+    document.getElementById("fetchReportSettings").onclick=()=>fetchReportData("fetchReportSettings");
+    document.getElementById("saveReportLayout").onclick=()=>{
+      const rl=config.reportLayout;
+      rl.rowsField=document.getElementById("rlRows").value||null;
+      rl.columnsField=document.getElementById("rlCols").value||null;
+      rl.valueField=document.getElementById("rlValue").value||null;
+      rl.aggregation=document.getElementById("rlAgg").value;
+      rl.periodField=document.getElementById("rlPeriod").value||null;
+      rl.columnsValues=[...document.querySelectorAll("#columnTicks input:checked")].map(x=>x.value);
+      rl.filterField=document.getElementById("rlFilter").value||null;
+      rl.filterFields=rl.filterField?[rl.filterField]:[];
+      rl.showSerialNumber=document.getElementById("rlSerial").checked;
+      rl.measureAggregations ||= {};
+      document.querySelectorAll("[data-measure-agg]").forEach(x=>rl.measureAggregations[x.dataset.measureAgg]=x.value);
+      saveConfig();renderReport();toast("Report layout saved");
+    };
+  }
+  if(settingsTab==="sync"){
+    document.getElementById("resetAppData").onclick=resetAppData;
+    document.getElementById("syncConnect").onclick=async()=>{if(hasToken())await disconnectGoogle();else{await privateAccess();renderSettings()}};
+    document.getElementById("syncNow").onclick=driveSyncNow;
+    document.getElementById("exportSettings").onclick=exportSettings;document.getElementById("importSettings").onclick=importSettings;
+  }
+}
+
+async function resetAppData(){if(!await confirmDialog("Reset app data","This will remove all GRID settings stored on this device and restore the initial configuration. Google Form/Sheet data and Drive files are not deleted.","Reset"))return;localStorage.removeItem(LS_KEY);localStorage.removeItem("grid.config.v1");localStorage.removeItem(SYNC_KEY);localStorage.removeItem(SYNC_BASE_KEY);accessToken=null;tokenExpiresAt=0;accountEmail=null;reportRows=[];reportHeaders=[];reportFetchedAt=null;activeFilters={};config=loadConfig();defaultDraftRows=null;syncConfig=loadSyncConfig();renderHome();renderReport();renderSettings();document.getElementById("aboutFormTitle").textContent=config.links.formTitle||"GRID";toast("GRID app data reset")}
+
+/* ===================== NAVIGATION ===================== */
+const views={home:"view-home",report:"view-report",settings:"view-settings",about:"view-about"};
+function showView(key){
+  document.querySelectorAll(".tabbar button").forEach(b=>b.classList.toggle("active",b.dataset.view===key));
+  Object.values(views).forEach(id=>document.getElementById(id).classList.remove("active"));
+  document.getElementById(views[key]).classList.add("active");
+  if(key==="home")renderHome();
+  if(key==="report")renderReport();
+  if(key==="settings")renderSettings();
+  if(key==="about"){document.getElementById("aboutFormTitle").textContent=config.links.formTitle||"GRID"}
+}
+document.querySelectorAll(".tabbar button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+document.getElementById("fetchReport").onclick=()=>fetchReportData("fetchReport");document.getElementById("refreshReport").onclick=()=>fetchReportData("refreshReport");
+document.getElementById("copyReport").onclick=copyReport;
+document.getElementById("exportCsv").onclick=exportReportCSV;
+
+/* ===================== PWA / UPDATE SUPPORT ===================== */
+function setupManifest(){
+  const manifest={name:"GRID — Google-linked Report & Input Dashboard",short_name:"GRID",start_url:"./",display:"standalone",background_color:"#ffffff",theme_color:"#2864e8",description:"Google-linked Report & Input Dashboard",icons:[]};
+  const blob=new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}),url=URL.createObjectURL(blob);document.getElementById("gridManifest").href=url;
+}
+let swReg=null,waitingWorker=null;
+async function setupServiceWorker(){
+  if(!("serviceWorker" in navigator))return;
+  try{
+    swReg=await navigator.serviceWorker.register("./service-worker.js");
+    if(swReg.waiting){waitingWorker=swReg.waiting;document.getElementById("updateNotice").classList.add("show")}
+    swReg.addEventListener("updatefound",()=>{const w=swReg.installing;if(!w)return;w.addEventListener("statechange",()=>{if(w.state==="installed"&&navigator.serviceWorker.controller){waitingWorker=w;document.getElementById("updateNotice").classList.add("show")}})});
+    document.getElementById("updateStatus").textContent="Service worker connected. GRID will check for updates when opened.";
+  }catch(e){document.getElementById("updateStatus").textContent="Service worker not found yet. The app still works normally; deploy service-worker.js beside index.html for install/offline caching and update prompts."}
+}
+document.getElementById("checkUpdate").onclick=async()=>{
+  if(!swReg){toast("Service worker is not available.");return}
+  try{await swReg.update();document.getElementById("updateStatus").textContent=swReg.waiting?"A new version is ready.":"You're using the latest version.";if(swReg.waiting){waitingWorker=swReg.waiting;document.getElementById("updateNotice").classList.add("show")}}catch(e){toast("Could not check for updates.")}
+};
+document.getElementById("updateLater").onclick=()=>document.getElementById("updateNotice").classList.remove("show");
+document.getElementById("updateNow").onclick=()=>{const w=waitingWorker||swReg?.waiting;if(w)w.postMessage({type:"SKIP_WAITING"});document.getElementById("updateNotice").classList.remove("show")};
+let refreshing=false;navigator.serviceWorker?.addEventListener("controllerchange",()=>{if(refreshing)return;refreshing=true;location.reload()});
+
+/* ===================== START ===================== */
+setupManifest();
+renderHome();
+renderReport();
+renderSettings();
+document.getElementById("aboutFormTitle").textContent=config.links.formTitle||"GRID";document.getElementById("shareApp").onclick=async()=>{if(navigator.share){try{await navigator.share({title:config.links.formTitle||"GRID",text:"GRID — Google-linked Report & Input Dashboard",url:location.href})}catch(e){}}else{try{await navigator.clipboard.writeText(location.href)}catch(e){}toast("App link copied")}};
+setupServiceWorker();
+})();
+</script>
+</body>
+</html>
