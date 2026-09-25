@@ -302,7 +302,7 @@ function renderHome(){
   const fields=sortFields();
   form.innerHTML=fields.length?fields.map(renderHomeField).join("")+
     `<div id="homeSubmitWrap" style="margin-top:17px"><button class="submit-btn" id="submitEntry" type="submit">Submit entry</button></div>`:
-    `<div class="small">No form fields are configured yet. Open Settings → Form fields from an owner account.</div>`;
+    `<div class="small">No form fields are configured yet. Configure the fields in Settings → Form fields, then connect Google from Settings → Sync.</div>`;
   if(!fields.length)return;
   form.onsubmit=submitHome;
 }
@@ -333,6 +333,16 @@ async function submitHome(e){
     showMessage("homeMessage","error","Couldn't reach Google. Check your connection and try again — nothing was saved yet.");
     return;
   }
+
+  // GRID uses one Google account connection for both Sheet access and the
+  // Home submission workflow. The Form endpoint itself does not accept the
+  // OAuth bearer token; this authentication gate ensures the same connected
+  // GRID account is active before a submission is sent.
+  if(!await privateAccess()){
+    showMessage("homeMessage","error","Connect GRID to Google first. The same connected Google account is used for GRID's Sheet access and Home submission workflow.");
+    return;
+  }
+
   const values={}; let invalid=null;
   for(const f of fields){
     let val;
@@ -368,6 +378,7 @@ async function submitHome(e){
   document.body.appendChild(hidden);
   const btn=document.getElementById("submitEntry");btn.disabled=true;btn.textContent="Submitting…";
   try{
+    if(!hasToken() && !await privateAccess())throw new Error("auth-expired");
     hidden.submit();
     await new Promise(r=>setTimeout(r,850));
     showMessage("homeMessage","success","Submitted ✓");
@@ -405,7 +416,7 @@ function requestToken(promptType="",hint=""){
       if(r?.access_token){accessToken=r.access_token;tokenExpiresAt=Date.now()+(Number(r.expires_in)||3600)*1000;resolve(r.access_token)}
       else reject(new Error(r?.error_description||r?.error||"No access token"))
     },error_callback:err=>reject(new Error(err?.type||err?.message||"Sign-in cancelled"))};
-    if(hint)cfg.hint=hint;
+    if(hint)cfg.login_hint=hint;
     google.accounts.oauth2.initTokenClient(cfg).requestAccessToken({prompt:promptType});
   });
 }
@@ -435,9 +446,21 @@ async function googleRequest(url,opts={}){
   return res;
 }
 async function privateAccess(){
-  if(hasToken())return true;
+  if(hasToken()){
+    if(!syncConfig.accountEmail){
+      try{await verifyAccount()}catch(e){return false}
+    }
+    return true;
+  }
   if(!syncConfig.wasConnected)return await ensureGoogle("consent");
-  try{await loadGIS();await requestToken("",syncConfig.accountEmail||"");await verifyAccount();return true}catch(e){return await ensureGoogle("consent")}
+  try{
+    await loadGIS();
+    await requestToken("",syncConfig.accountEmail||"");
+    await verifyAccount();
+    return true;
+  }catch(e){
+    return await ensureGoogle("consent");
+  }
 }
 async function disconnectGoogle(){
   if(!await confirmDialog("Google access","Disconnect Google access? Nothing in the linked Sheet or Drive settings file will be deleted.","Disconnect"))return;
@@ -589,6 +612,7 @@ async function fetchReportData(buttonId="fetchReport"){
       if(st)st.textContent="Google connection was not completed.";
       return;
     }
+    if(st)st.textContent=`Connected as ${syncConfig.accountEmail||"Google account"} · fetching Sheet data…`;
 
     if(fb)fb.textContent="Fetching…";
     if(st)st.textContent="Fetching Sheet data…";
@@ -1065,8 +1089,9 @@ function importSettings(){
 }
 function renderSyncTab(){
   const connected=hasToken(),expired=!connected&&syncConfig.wasConnected,when=syncConfig.lastSyncedAt?new Date(syncConfig.lastSyncedAt).toLocaleString():"Never";
-  return `<div class="settings-section"><div class="section-title">Google Drive Sync</div>
+  return `<div class="settings-section"><div class="section-title">Google Account</div>
     <div class="card">
+      <div class="small" style="margin-bottom:10px"><b>One Google connection is used by GRID</b> for Home form submission workflow, Google Sheet report fetching, and optional Google Drive sync.</div>
       <div class="settings-row" style="margin:0 0 9px">
         <div class="settings-row-head"><span class="status-dot ${connected?"ok":expired?"warn":""}"></span><div class="grow"><div class="settings-row-title">${connected?"Connected":expired?"Reconnect needed":"Not connected"}</div><div class="settings-row-sub">Last synced ${esc(when)}${syncConfig.accountEmail?` · ${esc(syncConfig.accountEmail)}`:""}</div></div><button class="btn" id="syncConnect">${connected?"Disconnect":"Connect"}</button></div>
       </div>
