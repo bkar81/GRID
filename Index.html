@@ -216,6 +216,8 @@ function loadConfig(){
     c.reportLayout.valueField ??= null;
     c.reportLayout.columnsValues=Array.isArray(c.reportLayout.columnsValues)?c.reportLayout.columnsValues:[];
     c.reportLayout.filterField ??= null;
+    c.reportLayout.filterFields ||= c.reportLayout.filterField ? [c.reportLayout.filterField] : [];
+    c.reportLayout.filterFields = [...new Set((c.reportLayout.filterFields||[]).filter(Boolean))];
     c.reportLayout.periodField ??= null;
     c.reportLayout.showSerialNumber ??= true;
     c.reportLayout.measureAggregations ||= {};
@@ -495,8 +497,11 @@ function formatValue(v){
   const n=Number(v);return Number.isFinite(n)?n.toLocaleString(undefined,{maximumFractionDigits:2}):String(v);
 }
 function applyFilters(rows){
+  const allowed=new Set(config.reportLayout.filterFields||[]);
   return rows.filter(r=>Object.entries(activeFilters).every(([fid,vals])=>{
-    if(!vals?.length)return true;const f=fieldById(fid);return vals.includes(sheetValue(r,f));
+    if(!allowed.has(fid) || !vals?.length)return true;
+    const f=fieldById(fid);if(!f)return true;
+    return vals.includes(sheetValue(r,f));
   }));
 }
 function rowsOrder(f){
@@ -525,13 +530,17 @@ function renderReportGrid(){
   wrap.innerHTML=h;
 }
 function renderReportFilters(){
-  const wrap=document.getElementById("reportFilters"),fid=config.reportLayout.filterField||null;
-  if(!fid){wrap.innerHTML="";return}
-  const f=fieldById(fid);if(!f){wrap.innerHTML="";return}
-  const vals=activeFilters[fid]||[];
-  const label=vals.length?`${f.label}: ${vals.length===1?vals[0]:vals.length+" selected"}`:`${f.label}: All`;
-  wrap.innerHTML=`<button class="filter-chip ${vals.length?"active":""}" data-filter="${esc(fid)}">${esc(label)} ▾</button>`;
-  wrap.querySelector("[data-filter]").onclick=()=>openFilterPicker(fid);
+  const wrap=document.getElementById("reportFilters");
+  const filterFields=(config.reportLayout.filterFields||[]).filter(fid=>fieldById(fid));
+  if(!filterFields.length){wrap.innerHTML="";return}
+  wrap.innerHTML=filterFields.map(fid=>{
+    const f=fieldById(fid), vals=activeFilters[fid]||[];
+    const label=vals.length?`${f.label}: ${vals.length===1?vals[0]:vals.length+" selected"}`:`${f.label}: All`;
+    return `<button class="filter-chip ${vals.length?"active":""}" data-filter="${esc(fid)}">${esc(label)} ▾</button>`;
+  }).join("");
+  wrap.querySelectorAll("[data-filter]").forEach(btn=>{
+    btn.onclick=()=>openFilterPicker(btn.dataset.filter);
+  });
 }
 async function openFilterPicker(fid){
   const f=fieldById(fid);if(!f)return;
@@ -739,7 +748,7 @@ function renderFieldRows(){
     row.querySelector("[data-edit]").onclick=()=>row.querySelector(".field-edit").classList.toggle("hidden");
     row.querySelector("[data-up]")?.addEventListener("click",()=>moveField(id,-1));
     row.querySelector("[data-down]")?.addEventListener("click",()=>moveField(id,1));
-    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
+    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);config.reportLayout.filterField=config.reportLayout.filterFields[0]||null;if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
     row.querySelector("[data-savefield]").onclick=()=>saveFieldRow(row,f);
     row.querySelectorAll("[data-prop]").forEach(el=>el.addEventListener("change",()=>{row.querySelectorAll(".choice-only").forEach(x=>x.style.display=(row.querySelector('[data-prop="dataType"]').value==="choice"?"block":"none"))}));
     row.querySelectorAll("[data-prop]").forEach(el=>{if(el.dataset.prop==="dataType")el.dispatchEvent(new Event("change"))});
@@ -900,7 +909,13 @@ function renderReportSettingsTab(){
         <div class="small" style="margin-bottom:6px">Configure an aggregation only for numeric fields.</div>
         <div id="measureConfig">${renderMeasureConfig()}</div>
       </div>
-      <div class="field"><label>Filters</label><select id="rlFilter" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.filterField)}</select></div>
+      <div class="field">
+        <label>Filters · select multiple</label>
+        <div class="check-grid" id="filterFields">
+          ${sortFields().length?sortFields().map(f=>`<label class="check-item"><input type="checkbox" value="${esc(f.id)}" ${((rl.filterFields||[]).includes(f.id))?"checked":""} ${fetched?"":"disabled"}> ${esc(f.label||"Unnamed field")}</label>`).join(""):`<span class="small">No fields are configured yet.</span>`}
+        </div>
+        <div class="field-hint">Select multiple filter fields. Each selected filter can have multiple values.</div>
+      </div>
       <div class="field"><label>Period-style filter field</label><select id="rlPeriod" ${fetched?"":"disabled"}><option value="">Auto detect</option>${selectFieldOptions(rl.periodField)}</select></div>
       <label class="check-item" style="margin-top:8px"><input id="rlSerial" type="checkbox" ${rl.showSerialNumber?"checked":""}> Show serial number column</label>
       <button class="btn primary" id="saveReportLayout" style="width:100%;margin-top:12px">Save report layout</button>
@@ -1033,8 +1048,9 @@ function bindSettingsTab(){
       rl.aggregation=document.getElementById("rlAgg").value;
       rl.periodField=document.getElementById("rlPeriod").value||null;
       rl.columnsValues=[...document.querySelectorAll("#columnTicks input:checked")].map(x=>x.value);
-      rl.filterField=document.getElementById("rlFilter").value||null;
-      rl.filterFields=rl.filterField?[rl.filterField]:[];
+      rl.filterFields=[...document.querySelectorAll("#filterFields input:checked")].map(x=>x.value);
+      rl.filterField=rl.filterFields[0]||null;
+      Object.keys(activeFilters).forEach(fid=>{if(!rl.filterFields.includes(fid))delete activeFilters[fid]});
       rl.showSerialNumber=document.getElementById("rlSerial").checked;
       rl.measureAggregations ||= {};
       document.querySelectorAll("[data-measure-agg]").forEach(x=>rl.measureAggregations[x.dataset.measureAgg]=x.value);
