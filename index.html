@@ -127,7 +127,7 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
     </section>
 
     <section class="view" id="view-about">
-      <div class="card about-hero"><div class="about-logo">G</div><div><h2>GRID</h2><p>Google-linked Report &amp; Input Dashboard<br><span id="aboutVersion">v1.3.0</span> · light-theme PWA</p></div></div>
+      <div class="card about-hero"><div class="about-logo">G</div><div><h2>GRID</h2><p>Google-linked Report &amp; Input Dashboard<br><span id="aboutVersion">v1.0.0</span> · light-theme PWA</p></div></div>
       <div class="card"><div class="section-title">Currently set up for</div><div id="aboutFormTitle" style="font-size:16px;font-weight:800">GRID</div></div>
       <div class="card about-section"><div class="section-title">What GRID does</div><p class="small" style="font-size:12px">GRID lets anyone submit an entry directly to a configured Google Form without logging in. The private Report and Settings screens use the data owner's Google account to read the linked Sheet and synchronize GRID's own configuration.</p></div>
       <div class="card about-section"><div class="section-title">Installing GRID</div><p class="small">Open GRID in Chrome or another supported browser over HTTPS, then use the browser's <b>Install app</b> / <b>Add to Home screen</b> option. The PWA works as a standalone app and can use the cached shell when offline.</p></div>
@@ -167,7 +167,7 @@ const SYNC_BASE_KEY = "grid.sync.base.v1";
 const DRIVE_FILE_NAME = "grid-settings.json";
 
 /* Replace this with the OAuth client ID configured for the GRID deployment. */
-const GRID_GOOGLE_CLIENT_ID = "26962638485-2upnfr06rrc89m9ihtp9oosnqii22dni.apps.googleusercontent.com";
+const GRID_GOOGLE_CLIENT_ID = "399109919198-bo3l7q2muggpoamlrbf3nvhki69o1l9g.apps.googleusercontent.com";
 const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets.readonly";
 
 const EMPTY_CONFIG = {
@@ -418,6 +418,7 @@ async function ensureGoogle(promptType="consent"){
   }catch(e){
     if(e.message==="client-id-missing") toast("Set the GRID OAuth Client ID in index.html before using Google access.");
     else if(e.message==="load-failed") toast("Google sign-in needs an internet connection.");
+    else if(e?.message) toast("Google connection failed: "+e.message);
     else toast("Google sign-in was not completed.");
     return false;
   }
@@ -563,11 +564,67 @@ async function openFilterPicker(fid){
   };
 }
 async function fetchReportData(buttonId="fetchReport"){
-  if(reportLoading)return; if(!(await privateAccess())){renderReport();return} if(!navigator.onLine){toast("Connect to the internet to fetch the report.");return}
-  reportLoading=true;const fb=document.getElementById(buttonId),rb=document.getElementById("refreshReport");if(fb){fb.disabled=true;fb.textContent="Fetching…"}if(rb)rb.disabled=true;const st=document.getElementById("reportStatus");if(st)st.textContent="Fetching Sheet…";
-  try{const result=await fetchSheetData();reportRows=result.rows;reportHeaders=result.headers;reportFetchedAt=new Date();if(st)st.textContent=`${reportRows.length.toLocaleString()} rows · fetched ${reportFetchedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;renderReportFilters();renderReportGrid();if(document.getElementById("view-settings")?.classList.contains("active")&&settingsTab==="report")renderSettingsTab();toast(`Fetched ${reportRows.length.toLocaleString()} rows from Google Sheet.`)}
-  catch(e){reportRows=[];reportHeaders=[];reportFetchedAt=null;if(st)st.textContent="";const msg=e.status===403||e.status===404?"You don't currently have access to this data. Ask the data owner to share the Google Sheet with your account, then try again.":"Couldn't read the linked Sheet. Check the Sheet link, sharing access, and Google connection.";document.getElementById("reportGridWrap").innerHTML=`<div class="card report-empty">${esc(msg)}</div>`}
-  finally{reportLoading=false;if(fb){fb.disabled=false;fb.textContent="↓ Fetch"}if(rb)rb.disabled=false}
+  if(reportLoading)return;
+  const fb=document.getElementById(buttonId),rb=document.getElementById("refreshReport"),st=document.getElementById("reportStatus");
+  const sheetUrl=String(config.links.sheetUrl||"").trim();
+  if(!sheetUrl){
+    toast("Add and save the Google Sheet link in Settings → Links first.");
+    if(st)st.textContent="Google Sheet link is not configured.";
+    return;
+  }
+  if(!navigator.onLine){
+    toast("Connect to the internet to fetch the Google Sheet.");
+    if(st)st.textContent="Internet connection required.";
+    return;
+  }
+
+  reportLoading=true;
+  if(fb){fb.disabled=true;fb.textContent="Connecting…"}
+  if(rb)rb.disabled=true;
+  if(st)st.textContent="Connecting to Google…";
+
+  try{
+    const connected=await privateAccess();
+    if(!connected){
+      if(st)st.textContent="Google connection was not completed.";
+      return;
+    }
+
+    if(fb)fb.textContent="Fetching…";
+    if(st)st.textContent="Fetching Sheet data…";
+
+    const result=await fetchSheetData();
+    reportRows=result.rows;
+    reportHeaders=result.headers;
+    reportFetchedAt=new Date();
+
+    if(st)st.textContent=`${reportRows.length.toLocaleString()} rows · fetched ${reportFetchedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`;
+    renderReportFilters();
+    renderReportGrid();
+
+    if(document.getElementById("view-settings")?.classList.contains("active")&&settingsTab==="report"){
+      renderSettingsTab();
+    }
+    toast(`Fetched ${reportRows.length.toLocaleString()} rows from Google Sheet.`);
+  }catch(e){
+    reportRows=[];reportHeaders=[];reportFetchedAt=null;
+    const status=e?.status;
+    let msg="Couldn't read the linked Google Sheet.";
+    if(e?.message==="bad-sheet-link")msg="The Google Sheet link is invalid. Check Settings → Links.";
+    else if(e?.message==="sheet-not-found")msg="The requested Sheet tab could not be found.";
+    else if(status===401)msg="Google access expired. Click Fetch again and reconnect Google.";
+    else if(status===403)msg="Google access was denied. Make sure the signed-in account can view the Google Sheet.";
+    else if(status===404)msg="The Google Sheet was not found. Check the Sheet link and sharing access.";
+    else if(status)msg=`Google Sheets returned an error (${status}). Check the Sheet link and Google permissions.`;
+    if(st)st.textContent=msg;
+    const wrap=document.getElementById("reportGridWrap");
+    if(wrap)wrap.innerHTML=`<div class="card report-empty">${esc(msg)}</div>`;
+    toast(msg);
+  }finally{
+    reportLoading=false;
+    if(fb){fb.disabled=false;fb.textContent="↓ Fetch Sheet data"}
+    if(rb)rb.disabled=false;
+  }
 }
 async function refreshReport(){return fetchReportData("refreshReport")}
 function renderReport(){
@@ -914,7 +971,7 @@ function renderReportSettingsTab(){
         <div class="check-grid" id="filterFields">
           ${sortFields().length?sortFields().map(f=>`<label class="check-item"><input type="checkbox" value="${esc(f.id)}" ${((rl.filterFields||[]).includes(f.id))?"checked":""} ${fetched?"":"disabled"}> ${esc(f.label||"Unnamed field")}</label>`).join(""):`<span class="small">No fields are configured yet.</span>`}
         </div>
-        <div class="field-hint">Select multiple filter fields. Each selected filter can have multiple values.</div>
+        <div class="field-hint">Select multiple filter fields. Filter values are selected in the Report view.</div>
       </div>
       <div class="field"><label>Period-style filter field</label><select id="rlPeriod" ${fetched?"":"disabled"}><option value="">Auto detect</option>${selectFieldOptions(rl.periodField)}</select></div>
       <label class="check-item" style="margin-top:8px"><input id="rlSerial" type="checkbox" ${rl.showSerialNumber?"checked":""}> Show serial number column</label>
