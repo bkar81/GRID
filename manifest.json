@@ -1,9 +1,9 @@
 {
   "name": "GRID — Google-linked Report & Input Dashboard",
   "short_name": "GRID",
-  "id": "./",
-  "start_url": "./",
-  "scope": "./",
+  "id": "/grid/",
+  "start_url": "/grid/",
+  "scope": "/grid/",
   "display": "standalone",
   "display_override": [
     "standalone",
