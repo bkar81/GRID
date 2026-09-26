@@ -61,7 +61,7 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .settings-section{margin-bottom:18px}.section-title{font-size:11px;font-weight:900;color:var(--text-faint);letter-spacing:.6px;text-transform:uppercase;margin:0 0 8px}.settings-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.compact-action{width:auto!important;min-height:34px;padding:7px 11px;white-space:nowrap}
 .settings-row{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 12px;margin-bottom:8px}.settings-row-head{display:flex;align-items:center;gap:8px}.drag-handle,.default-drag-handle{width:22px;min-width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:20px;font-weight:900;letter-spacing:-4px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.drag-handle:active,.default-drag-handle:active{cursor:grabbing}.settings-row.dragging,.default-row.dragging{
   position:relative;
-  opacity:.72;
+  opacity:.78;
   border-color:transparent!important;
   border-style:solid!important;
 }
@@ -70,17 +70,10 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
   position:absolute;
   inset:-2px;
   border-radius:inherit;
-  padding:2px;
-  background:repeating-conic-gradient(from 0deg,var(--primary) 0 7deg,transparent 7deg 14deg);
-  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;
-  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  mask-composite:exclude;
   pointer-events:none;
-  animation:grid-marching-border .75s linear infinite;
-}
-@keyframes grid-marching-border{
-  to{transform:rotate(360deg)}
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect x='2' y='2' width='96' height='96' rx='8' fill='none' stroke='%232d66e5' stroke-width='3' stroke-dasharray='9 7' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")
+    0 0/100% 100% no-repeat;
 }
 .settings-row-head .drag-handle{margin-left:-4px}.settings-row-head .grow{flex:1;min-width:0}.settings-row-title{font-size:13px;font-weight:800}.settings-row-sub{font-size:10px;color:var(--text-faint);margin-top:2px;line-height:1.35}
 .field-actions{display:flex;gap:4px}.icon-btn{border:1px solid var(--border);background:var(--surface-2);border-radius:7px;padding:6px 7px;color:var(--text-dim);font-size:13px}.icon-btn:disabled{opacity:.35}
