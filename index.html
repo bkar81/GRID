@@ -950,7 +950,7 @@ async function reportImageBlob(includeFilters){
   const fn=await loadHtml2Canvas();
   const box=document.createElement("div");
   box.style.cssText="position:fixed;left:-100000px;top:0;background:#fff;padding:18px;box-sizing:border-box;display:inline-block;width:max-content;max-width:none;min-width:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;color:"+(document.documentElement.classList.contains("dark-theme")?"#fff":"#182335")+";overflow:visible";
-  const title=document.createElement("div");title.innerHTML=`<div style="font-size:18px;font-weight:800;margin-bottom:3px">${esc(config.links.formTitle||"GRID")}</div><div style="font-size:11px;color:#66758a;margin-bottom:12px">GRID Report</div>`;box.appendChild(title);
+  const title=document.createElement("div");title.innerHTML=`<div style="font-size:18px;font-weight:800;margin-bottom:3px;color:#182335">${esc(config.links.formTitle||"GRID")}</div><div style="font-size:11px;color:#66758a;margin-bottom:12px">GRID Report</div>`;box.appendChild(title);
   if(includeFilters){const fs=activeFilterLines();if(fs.length){const f=document.createElement("div");f.style.cssText="font-size:11px;margin-bottom:10px;color:#3f526b;white-space:nowrap";f.textContent=fs.join("  •  ");box.appendChild(f)}}
   const reportClone=src.cloneNode(true);
   reportClone.style.width="max-content";reportClone.style.maxWidth="none";reportClone.style.minWidth="0";reportClone.style.boxSizing="border-box";reportClone.style.overflow="visible";
