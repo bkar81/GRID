@@ -1331,12 +1331,14 @@ renderReport();
 renderSettings();
 document.getElementById("aboutFormTitle").textContent=config.links.formTitle||"GRID";document.getElementById("shareApp").onclick=async()=>{if(navigator.share){try{await navigator.share({title:config.links.formTitle||"GRID",text:"GRID — Google-linked Report & Input Dashboard",url:location.href})}catch(e){}}else{try{await navigator.clipboard.writeText(location.href)}catch(e){}toast("App link copied")}};
 setupServiceWorker();
-})();
+
 document.addEventListener("click",e=>{
   const th=e.target.closest("#reportGridWrap th[data-report-sort]");
   if(!th)return;
+  e.preventDefault();
   toggleReportColumnSort(th.dataset.reportSort);
 });
+})();
 </script>
 </body>
 </html>
