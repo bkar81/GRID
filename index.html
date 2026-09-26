@@ -17,7 +17,7 @@
   --bg:#f6f8fb;--surface:#fff;--surface-2:#f2f5f9;--surface-3:#eaf0f7;
   --border:#d7e0eb;--border-soft:#e9eef4;--text:#182335;--text-dim:#5d6b7d;
   --text-faint:#8795a8;--accent:#2864e8;--accent-soft:#eaf1ff;--accent-ink:#fff;
-  --success:#17864b;--success-soft:#e8f7ef;--danger:#d94c4c;--danger-soft:#fff0f0;
+  --success:#b07d13;--success-soft:#f7f0df;--danger:#d94c4c;--danger-soft:#fff0f0;
   --warn:#a56a00;--warn-soft:#fff7df;--radius:13px;--radius-sm:9px;
   --shadow:0 5px 18px rgba(31,55,87,.08);
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -29,13 +29,13 @@
 html.dark-theme{color-scheme:dark;
   --bg:#0b0d10;--surface:#15181d;--surface-2:#1d2229;--surface-3:#232831;
   --border:#292f38;--border-soft:#22272f;--text:#f1f2f4;--text-dim:#a7acb6;--text-faint:#777d88;
-  --accent:#e2ad43;--accent-soft:#2d271b;--accent-ink:#111;--success:#56c596;--success-soft:#183127;
+  --accent:#e2ad43;--accent-soft:#2d271b;--accent-ink:#111;--success:#d9a441;--success-soft:#2a261f;
   --danger:#ef6b6b;--danger-soft:#351d20;--warn:#e1ae4b;--warn-soft:#342b1a;
   --shadow:0 6px 22px rgba(0,0,0,.28);--input-bg:#171b21;--topbar-bg:rgba(11,13,16,.96);--tabbar-bg:rgba(17,20,25,.98);
   --report-bg:#15181d;--report-even:#191d23;--report-head:#20252d;--report-total:#1d2b3d;--report-total-text:#f0c46a;
   --modal-bg:#15181d;--overlay:rgba(0,0,0,.62);--toast-bg:#f1f2f4;--hover-soft:#282d35;
 }
-.dark-theme .submit-btn,.dark-theme .btn{color:var(--accent-ink)}
+.dark-theme .submit-btn,.dark-theme .btn:not(.settings-add-bottom){color:var(--accent-ink)}
 .dark-theme .btn.danger{color:var(--danger)}
 .dark-theme .choice-btn.primary{color:var(--accent);border-color:#5d4b28}
 input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}
@@ -46,7 +46,7 @@ html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
-input,select,textarea{width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:11px 12px;font-size:15px}
+input,select,textarea{width:100%;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:11px 12px;font-size:15px}select{border-color:#c8d8fa;background:var(--surface-2)}
 input:focus,select:focus,textarea:focus{outline:2px solid rgba(40,100,232,.18);border-color:var(--accent)}
 textarea{min-height:86px;resize:vertical}
 .hidden{display:none!important}.mono{font-family:var(--mono)}
@@ -66,12 +66,12 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .choice-list.radio-list{display:grid;grid-template-columns:1fr 1fr}.choice-list.radio-list label{border-radius:9px}
 .submit-btn{width:100%;border:0;background:var(--accent);color:#fff;border-radius:11px;padding:14px 16px;font-weight:800;font-size:15px;box-shadow:0 4px 12px rgba(40,100,232,.22)}
 .submit-btn:active{transform:translateY(1px)}.submit-btn:disabled{opacity:.6;cursor:wait}
-.inline-message{display:none;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}.inline-message.show{display:block}.inline-message.success{background:var(--success-soft);color:var(--success);border:1px solid #bfe8d0}.inline-message.error{background:var(--danger-soft);color:var(--danger);border:1px solid #f1c6c6}.inline-message.warn{background:var(--warn-soft);color:var(--warn);border:1px solid #efd99a}
+.inline-message{display:none;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}.inline-message.show{display:block}.inline-message.success{background:var(--success-soft);color:var(--success);border:1px solid #d9c28a}.inline-message.error{background:var(--danger-soft);color:var(--danger);border:1px solid #f1c6c6}.inline-message.warn{background:var(--warn-soft);color:var(--warn);border:1px solid #efd99a}
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:520px;margin:0 auto;display:flex;background:var(--tabbar-bg);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 14px rgba(31,55,87,.06)}
 .tabbar button{flex:1;border:0;background:none;padding:9px 0 8px;color:var(--text-faint);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}.tabbar button .ic{font-size:17px;line-height:1}.tabbar button.active{color:var(--accent)}
 .toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px}.toolbar-spacer{flex:1}
 .btn{border:1px solid var(--accent);background:var(--accent);border-radius:9px;padding:8px 11px;font-size:12px;font-weight:800;color:#fff}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.ghost{background:var(--surface-2)}.btn.danger{background:var(--danger-soft);border-color:#f1c6c6;color:var(--danger)}.btn:disabled{opacity:.5;cursor:not-allowed}
-.filter-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:9px}.compact-select{min-width:150px;flex:0 1 auto;padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font:inherit;font-size:12px}
+.filter-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:9px}.compact-select{min-width:150px;flex:0 1 auto;padding:8px 28px 8px 10px;border:1px solid #c8d8fa;border-radius:10px;background:var(--surface-2);color:var(--text);font:inherit;font-size:12px}
 .filter-chip{flex:0 0 auto;border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:7px 10px;font-size:11px;font-weight:800;color:var(--text-dim)}.filter-chip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .report-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--report-bg)}.report-grid{border-collapse:collapse;width:100%;min-width:340px;font-size:12px}.report-grid th,.report-grid td{border-bottom:1px solid var(--border-soft);border-right:1px solid var(--border-soft);padding:7px 8px;text-align:right;white-space:nowrap}.report-grid th:last-child,.report-grid td:last-child{border-right:0}.report-grid th:first-child,.report-grid td:first-child{text-align:left}.report-grid thead th{background:var(--report-head);color:#fff;font-size:11px;font-weight:800}.report-grid tbody tr:nth-child(even){background:var(--report-even)}.report-grid .total-row td{background:var(--report-total);color:var(--report-total-text);font-weight:900;border-top:1px solid #bfd3f3}.report-empty{padding:34px 15px;text-align:center;color:var(--text-faint);font-size:13px}
 .auth-card{text-align:center;padding:26px 16px}.auth-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-weight:900}.auth-icon img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.auth-card h3{margin:0 0 6px;font-size:16px}.auth-card p{margin:0 0 15px;color:var(--text-dim);font-size:12px;line-height:1.5}
@@ -90,7 +90,7 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
   border-radius:inherit;
   pointer-events:none;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect x='2' y='2' width='96' height='96' rx='8' fill='none' stroke='%232d66e5' stroke-width='3' stroke-dasharray='9 7' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Crect x='2' y='2' width='96' height='96' rx='8' fill='none' stroke='%23d9a441' stroke-width='3' stroke-dasharray='9 7' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E")
     0 0/100% 100% no-repeat;
   animation:grid-marching-border .8s linear infinite;
 }
@@ -103,7 +103,7 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .field-edit{margin-top:9px;padding-top:9px;border-top:1px solid var(--border-soft)}.field-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field-edit-grid .wide{grid-column:1/-1}
 .option-list{margin-top:8px}.option-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}.option-row input{padding:8px 9px;font-size:13px}.add-link{border:0;background:none;color:var(--accent);font-weight:800;font-size:12px;padding:5px 0}
 .detected{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.detected-pill{border:1px solid #bcd0f4;background:var(--accent-soft);color:#2457b9;border-radius:16px;padding:6px 8px;font-size:10px;font-weight:800;cursor:pointer}
-.info-box{background:var(--warn-soft);border:1px solid #efd99a;color:#805600;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.5;margin-bottom:10px}.info-box b{font-weight:900}
+.info-box{background:#eaf1ff;border:1px solid #c8d8fa;color:#2457b9;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.5;margin-bottom:10px}.info-box b{font-weight:900}
 .instructions{border:1px solid var(--border);border-radius:10px;background:var(--surface-2);padding:10px 11px;font-size:11px;color:var(--text-dim);line-height:1.55}.instructions summary{cursor:pointer;font-weight:900;color:var(--text)}
 .check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.check-item{display:flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface-2);border-radius:8px;padding:8px;font-size:11px;color:var(--text-dim)}.check-item input{width:auto}
 .status-card{display:flex;align-items:center;gap:10px}.status-dot{width:9px;height:9px;border-radius:50%;background:var(--text-faint);flex:0 0 auto}.status-dot.ok{background:var(--success)}.status-dot.warn{background:#d99419}
@@ -118,6 +118,27 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .report-sortable:hover{background:var(--hover-soft)}
 .report-sort-arrow{font-size:10px;margin-left:4px;opacity:.9}
  .theme-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:12px}.theme-title{font-size:12px;font-weight:900}.theme-subtitle{font-size:10px;color:var(--text-faint);margin-top:2px}.theme-switch{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;flex:0 0 auto}.theme-switch input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.theme-switch-track{width:42px;height:24px;border-radius:999px;background:var(--surface-3);border:1px solid var(--border);padding:2px;display:flex;align-items:center;transition:.18s}.theme-switch-knob{width:18px;height:18px;border-radius:50%;background:var(--text-faint);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}.theme-switch input:checked+.theme-switch-track{background:var(--accent);border-color:var(--accent);justify-content:flex-end}.theme-switch input:checked+.theme-switch-track .theme-switch-knob{background:var(--accent-ink)}.theme-switch-label{font-size:11px;font-weight:800;color:var(--text-dim);min-width:31px}.theme-switch input:focus-visible+.theme-switch-track{outline:2px solid var(--accent);outline-offset:2px}
+/* Settings collapsible sections */
+.settings-collapsible{margin:0 0 12px;padding:0;overflow:hidden}.settings-collapsible>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;padding:10px 12px;font-size:11px;font-weight:900;color:var(--text);background:var(--surface-2);user-select:none}.settings-collapsible>summary::-webkit-details-marker{display:none}.settings-collapsible>summary::before{content:'▸';color:var(--accent);font-size:12px;flex:0 0 auto}.settings-collapsible[open]>summary::before{content:'▾'}.settings-collapsible>summary>span{flex:1;min-width:0}.settings-collapsible .collapsible-body{padding:10px 11px 11px;border-top:1px solid var(--border-soft)}.settings-collapsible .collapsible-body>.small{margin-bottom:8px}.settings-add-bottom{width:100%!important;margin:2px 0 8px;color:#2864E8} 
+.dark-theme .settings-add-bottom{background:transparent!important;border-color:#D9A441!important;color:#D9A441!important;}
+/* Dark theme: PET-inspired gold accents. Avoid green/cyan UI accents. */
+.dark-theme input:focus,.dark-theme select:focus,.dark-theme textarea:focus{outline-color:rgba(217,164,65,.28);border-color:#d9a441}
+.dark-theme option{background:#232831;color:#f1f2f4}
+.dark-theme select,.dark-theme .compact-select{border-color:#d9a441;background:#232831;color:#f1f2f4}
+.dark-theme .info-box{background:#2a261f;border-color:#d9a441;color:#e6c36a}
+.dark-theme .detected-pill{border-color:#6b5a32;background:#292d33;color:#e6c36a}
+.dark-theme .fetch-box{background:#292d33;border-color:#d9a441;color:#e6c36a}
+.dark-theme .choice-btn.primary{background:#292d33;border-color:#d9a441;color:#e6c36a}
+.dark-theme .update-notice{border-color:#6b5a32}
+.dark-theme .report-grid .total-row td{border-top-color:#6b5a32}
+.dark-theme .submit-btn{box-shadow:0 4px 12px rgba(217,164,65,.16)}
+/* In dark mode all action buttons use the PET-style gold surface with readable black text. */
+.dark-theme .btn,.dark-theme .btn.primary,.dark-theme .btn.ghost,.dark-theme .settings-add-bottom{background:#d9a441;border-color:#d9a441;color:#111;text-shadow:none}
+.dark-theme .btn.danger{background:#d9a441;border-color:#d9a441;color:#111}
+.dark-theme .btn:hover,.dark-theme .settings-add-bottom:hover{filter:brightness(1.05)}
+/* Keep every dropdown neutral grey in dark mode; gold is used for its border/focus state. */
+.dark-theme input,.dark-theme textarea{background:#171b21}
+.dark-theme select,.dark-theme .compact-select{background:#232831}
 </style>
 <script>try{if(localStorage.getItem("grid.theme.v1")==="dark")document.documentElement.classList.add("dark-theme")}catch(e){}</script>
 </head>
@@ -1048,6 +1069,8 @@ function renderLinksTab(){
       <button class="btn primary" id="saveLinks" style="width:100%;margin-top:5px">Save links</button>
     </div></div>`;
 }
+let formFieldsSectionOpen=false;
+let defaultValuesSectionOpen=false;
 function renderFieldsTab(){
   return `<div class="settings-section">
     <div class="info-box"><b>Pre-fill helper:</b> open the Form in edit mode → ⋮ → <b>Pre-fill form</b> → enter recognizable values → Get Link. Paste that full URL below. GRID detects every <code>entry.NNNNNNN=value</code> automatically.</div>
@@ -1059,15 +1082,23 @@ function renderFieldsTab(){
     <details class="instructions" style="margin-bottom:12px"><summary>How to get the pre-filled link</summary>
       <ol><li>Open the Form in <b>edit mode</b>, not the public fill-out link.</li><li>Open ⋮ → <b>Pre-fill form</b> (or Get pre-filled link).</li><li>Type short recognizable values into every question.</li><li>Click <b>Get Link</b> and copy the full URL.</li><li>Paste it here. Tap a detected entry ID to assign it to a field.</li></ol>
     </details>
-    <div class="section-title settings-section-head" style="margin:0 0 8px"><span>Form Fields</span><button class="btn primary compact-action" id="addField">＋ Add field</button></div>
-    <div id="fieldList"></div>
-    <button class="btn" id="saveFields" style="width:100%;margin-top:8px">Save form fields</button>
-    <div class="settings-section" style="margin-top:14px">
-      <div class="section-title settings-section-head"><span>Default values shown on Home</span><button class="btn primary compact-action" id="addDefaultValue">＋ Add default value</button></div>
-      <div class="small" style="margin-bottom:8px">Configure the dropdown values that appear against each field on Home. Nothing on Home is hardcoded.</div>
-      <div id="defaultValueList"></div>
-      <button class="btn" id="saveDefaults" style="width:100%;margin-top:8px">Save default values</button>
-    </div>
+    <details class="instructions settings-collapsible" id="formFieldsSection" ${formFieldsSectionOpen?'open':''}>
+      <summary><span>Form Fields</span><button class="btn primary compact-action" id="addField" type="button">＋ Add field</button></summary>
+      <div class="collapsible-body">
+        <div id="fieldList"></div>
+        <button class="btn ghost settings-add-bottom" id="addFieldBottom" type="button">＋ Add field</button>
+        <button class="btn" id="saveFields" style="width:100%;margin-top:2px">Save form fields</button>
+      </div>
+    </details>
+    <details class="instructions settings-collapsible" id="defaultValuesSection" ${defaultValuesSectionOpen?'open':''}>
+      <summary><span>Default values shown on Home</span><button class="btn primary compact-action" id="addDefaultValue" type="button">＋ Add default value</button></summary>
+      <div class="collapsible-body">
+        <div class="small">Configure the dropdown values that appear against each field on Home. Nothing on Home is hardcoded.</div>
+        <div id="defaultValueList"></div>
+        <button class="btn ghost settings-add-bottom" id="addDefaultValueBottom" type="button">＋ Add default value</button>
+        <button class="btn" id="saveDefaults" style="width:100%;margin-top:2px">Save default values</button>
+      </div>
+    </details>
   </div>`;
 }
 function renderFieldRows(){
@@ -1176,6 +1207,7 @@ function moveField(id,delta){
   const a=sortFields(),i=a.findIndex(f=>f.id===id),j=i+delta;if(j<0||j>=a.length)return;[a[i].order,a[j].order]=[a[j].order,a[i].order];saveConfig();renderSettingsTab()
 }
 function addField(){
+  formFieldsSectionOpen=true;
   config.fields.push({id:uid(),label:"",order:config.fields.length+1,dataType:"text",choiceDisplay:"dropdown",options:[],defaultValues:[],formEntryId:"",required:false,min:null,sheetHeader:""});saveConfig();renderSettingsTab()
 }
 let defaultDraftRows=null;
@@ -1249,6 +1281,7 @@ function deleteDefaultRow(index){
   const rows=ensureDefaultDraftRows();rows.splice(index,1);renderSettingsTab();
 }
 function addDefaultValue(){
+  defaultValuesSectionOpen=true;
   const fields=sortFields();if(!fields.length){toast("Add a form field first.");return;}
   const rows=ensureDefaultDraftRows();
   // Always append the new row to the bottom of the default-value list.
@@ -1539,7 +1572,22 @@ function bindSettingsTab(){
       saveConfig();renderHome(true);renderReport();document.getElementById("aboutFormTitle").textContent=config.links.formTitle;toast("Links saved")
     };
   }
-  if(settingsTab==="fields"){document.getElementById("parsePrefill").onclick=parsePrefill;document.getElementById("addField").onclick=addField;document.getElementById("saveFields").onclick=()=>{sortFields().forEach((f,i)=>f.order=i+1);saveConfig();renderHome(true);toast("Form fields saved")};document.getElementById("addDefaultValue").onclick=addDefaultValue;document.getElementById("saveDefaults").onclick=saveDefaultValuesFromUI;renderFieldRows();renderDefaultValues()}
+  if(settingsTab==="fields"){
+    document.getElementById("parsePrefill").onclick=parsePrefill;
+    const formDetails=document.getElementById("formFieldsSection");
+    const defaultDetails=document.getElementById("defaultValuesSection");
+    formDetails?.addEventListener("toggle",()=>{formFieldsSectionOpen=formDetails.open});
+    defaultDetails?.addEventListener("toggle",()=>{defaultValuesSectionOpen=defaultDetails.open});
+    const addFieldAction=(e)=>{e?.preventDefault();e?.stopPropagation();formFieldsSectionOpen=true;addField()};
+    const addDefaultAction=(e)=>{e?.preventDefault();e?.stopPropagation();defaultValuesSectionOpen=true;addDefaultValue()};
+    document.getElementById("addField").onclick=addFieldAction;
+    document.getElementById("addFieldBottom").onclick=addFieldAction;
+    document.getElementById("saveFields").onclick=()=>{sortFields().forEach((f,i)=>f.order=i+1);saveConfig();renderHome(true);toast("Form fields saved")};
+    document.getElementById("addDefaultValue").onclick=addDefaultAction;
+    document.getElementById("addDefaultValueBottom").onclick=addDefaultAction;
+    document.getElementById("saveDefaults").onclick=saveDefaultValuesFromUI;
+    renderFieldRows();renderDefaultValues()
+  }
   if(settingsTab==="report"){
     document.getElementById("fetchReportSettings").onclick=()=>fetchReportData("fetchReportSettings");
     const colsSelect=document.getElementById("rlCols");
