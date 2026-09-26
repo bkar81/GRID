@@ -1165,6 +1165,16 @@ function assignDetected(i,id){const d=detectedPrefill[i],f=fieldById(id);if(!d||
 function selectFieldOptions(selected,filter=""){
   return sortFields().filter(f=>!filter||f.dataType===filter).map(f=>`<option value="${esc(f.id)}" ${f.id===selected?"selected":""}>${esc(f.label)}</option>`).join("");
 }
+function renderColumnValueChoices(fieldId,selectedValues){
+  const f=fieldById(fieldId);
+  const vals=f?Array.from(new Set([...(f.options||[]),...uniqueSheetValues(f)])):[];
+  const selected=new Set(selectedValues||[]);
+  return vals.length?vals.map(v=>`<label class="check-item"><input type="checkbox" value="${esc(v)}" ${selected.has(v)?"checked":""} ${reportHeaders.length?"":"disabled"}> ${esc(v)}</label>`).join(""):`<span class="small">${f?"No values found for this Columns field. Fetch the Sheet data to populate values.":"Choose a Columns field first."}</span>`;
+}
+function getColumnValueChoices(fieldId){
+  const f=fieldById(fieldId);
+  return f?Array.from(new Set([...(f.options||[]),...uniqueSheetValues(f)])):[];
+}
 function renderReportSettingsTab(){
   const rl=config.reportLayout;
   const cf=fieldById(rl.columnsField);
@@ -1185,7 +1195,7 @@ function renderReportSettingsTab(){
       <div class="field">
         <label>Column values · select multiple</label>
         <div class="check-grid" id="columnTicks">
-          ${vals.length?vals.map(v=>`<label class="check-item"><input type="checkbox" value="${esc(v)}" ${ticks.includes(v)?"checked":""} ${fetched?"":"disabled"}> ${esc(v)}</label>`).join(""):`<span class="small">Fetch the Sheet and choose a Columns field first.</span>`}
+          ${renderColumnValueChoices(rl.columnsField,ticks)}
         </div>
       </div>
       <div class="field"><label>Value (numeric field)</label><select id="rlValue" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.valueField,"number")}</select></div>
@@ -1385,6 +1395,20 @@ function bindSettingsTab(){
   if(settingsTab==="fields"){document.getElementById("parsePrefill").onclick=parsePrefill;document.getElementById("addField").onclick=addField;document.getElementById("saveFields").onclick=()=>{sortFields().forEach((f,i)=>f.order=i+1);saveConfig();renderHome(true);toast("Form fields saved")};document.getElementById("addDefaultValue").onclick=addDefaultValue;document.getElementById("saveDefaults").onclick=saveDefaultValuesFromUI;renderFieldRows();renderDefaultValues()}
   if(settingsTab==="report"){
     document.getElementById("fetchReportSettings").onclick=()=>fetchReportData("fetchReportSettings");
+    const colsSelect=document.getElementById("rlCols");
+    if(colsSelect)colsSelect.onchange=()=>{
+      const fieldId=colsSelect.value||"";
+      const previousFieldId=config.reportLayout.columnsField||"";
+      const previousTicks=config.reportLayout.columnsValues||[];
+      const choices=getColumnValueChoices(fieldId);
+      // When the Columns field changes, immediately rebuild the values list from
+      // that field. Do not leave the previous field's values on screen.
+      // For a newly selected field, start with all available values selected so
+      // the report remains populated; the user can then deselect any values.
+      const ticks=fieldId===previousFieldId?previousTicks.filter(v=>choices.includes(v)):choices.slice();
+      const ticksWrap=document.getElementById("columnTicks");
+      if(ticksWrap)ticksWrap.innerHTML=renderColumnValueChoices(fieldId,ticks);
+    };
     document.getElementById("saveReportLayout").onclick=()=>{
       const rl=config.reportLayout;
       rl.rowsField=document.getElementById("rlRows").value||null;
