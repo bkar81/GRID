@@ -75,6 +75,9 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(15px);z-index:200;opacity:0;pointer-events:none;background:#182335;color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;transition:.18s;max-width:calc(100% - 28px);text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .update-notice{display:none;position:fixed;left:12px;right:12px;bottom:76px;z-index:90;background:#fff;border:1px solid #bfd1f5;border-radius:13px;padding:13px;box-shadow:var(--shadow)}.update-notice.show{display:block}.update-notice b{font-size:13px}.update-notice p{font-size:11px;color:var(--text-dim);margin:4px 0 10px}.update-actions{display:flex;justify-content:flex-end;gap:7px}
 @media(max-width:430px){.field-edit-grid{grid-template-columns:1fr}.feature-grid,.check-grid{grid-template-columns:1fr}.choice-list.radio-list{grid-template-columns:1fr}}
+.report-sortable{cursor:pointer;user-select:none;white-space:nowrap}
+.report-sortable:hover{background:#e8f1ff}
+.report-sort-arrow{font-size:10px;margin-left:4px;opacity:.9}
 </style>
 </head>
 <body>
@@ -103,13 +106,6 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
           <button class="btn primary" id="fetchReport">↓ Fetch Sheet data</button>
           <div class="toolbar-spacer"></div>
           <span id="reportStatus" class="small"></span>
-        </div>
-        <div class="toolbar" style="margin-top:8px">
-          <select id="reportSortBy" class="compact-select" aria-label="Sort by"></select>
-          <select id="reportSortDir" class="compact-select" aria-label="Sort direction">
-            <option value="asc">↑ Ascending</option>
-            <option value="desc">↓ Descending</option>
-          </select>
         </div>
         <div id="reportFilters" class="filter-row"></div>
         <div class="toolbar">
@@ -564,16 +560,21 @@ function sortReportRowValues(rowVals,rows,rowF){
   if(reportSortDir==="desc")indexed.reverse();
   return indexed.map(x=>x.value);
 }
-function renderReportSortControls(rowF){
-  const by=document.getElementById("reportSortBy"),dir=document.getElementById("reportSortDir");
-  if(!by||!dir)return;
-  const sn=!!config.reportLayout.showSerialNumber;
-  const current=reportSortBy;
-  by.innerHTML=`${sn?`<option value="serial">Serial number</option>`:""}<option value="row">${esc(rowF?.label||"Row field")}</option>`;
-  reportSortBy=(sn&&current==="serial")||current==="row"?current:(sn?"serial":"row");
-  by.value=reportSortBy;dir.value=reportSortDir;
-  by.onchange=()=>{reportSortBy=by.value;renderReportGrid()};
-  dir.onchange=()=>{reportSortDir=dir.value;renderReportGrid()};
+
+function toggleReportColumnSort(type){
+  const key=type==="serial"?"serial":"row";
+  if(reportSortBy===key){
+    reportSortDir=reportSortDir==="asc"?"desc":"asc";
+  }else{
+    reportSortBy=key;
+    reportSortDir="asc";
+  }
+  renderReportGrid();
+}
+function reportSortHeader(type,label){
+  const active=reportSortBy===type;
+  const arrow=active?(reportSortDir==="asc"?" ▲":" ▼"):"";
+  return `<th class="report-sortable" data-report-sort="${type}" title="Click to sort ${reportSortDir==="asc"?"ascending":"descending"}">${esc(label)}<span class="report-sort-arrow">${arrow}</span></th>`;
 }
 function buildReportModel(){
   const rl=config.reportLayout,rowF=fieldById(rl.rowsField),colF=fieldById(rl.columnsField),valF=fieldById(rl.valueField);
@@ -590,10 +591,9 @@ function renderReportGrid(){
   const wrap=document.getElementById("reportGridWrap"),m=buildReportModel();
   if(!reportHeaders.length){wrap.innerHTML=`<div class="card report-empty">Click <b>Fetch</b> to read the linked Google Sheet. GRID does not read the Sheet merely because a Sheet link is configured.</div>`;return}
   if(!m){wrap.innerHTML=`<div class="card report-empty">Configure Rows, Columns and Value in Settings → Report.</div>`;return}
-  renderReportSortControls(m.rowF);
   if(!m.colVals.length){wrap.innerHTML=`<div class="card report-empty">No report columns are ticked. Configure them in Settings → Report.</div>`;return}
   const sn=config.reportLayout.showSerialNumber;
-  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?"<th>#</th>":""}<th>${esc(m.rowF.label)}</th>${m.colVals.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?reportSortHeader("serial","#"): ""}${reportSortHeader("row",m.rowF.label)}${m.colVals.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
   m.rowVals.forEach((rv,i)=>{h+=`<tr>${sn?`<td>${i+1}</td>`:""}<td><b>${esc(rv)}</b></td>${m.matrix[i].map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr>`});
   h+=`<tr class="total-row">${sn?"<td></td>":""}<td>Grand total</td>${m.totals.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr></tbody></table></div>`;
   wrap.innerHTML=h;
@@ -713,7 +713,15 @@ function activeFilterLines(){
 }
 function csvEscape(v){const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
 function exportReportCSV(){
-  const m=buildReportModel();if(!m)return;
+  const m=buildReportModel();
+  if(!m){
+    toast("Configure Rows, Columns and Value in Settings → Report first.");
+    return;
+  }
+  if(!reportRows.length){
+    toast("Fetch the Google Sheet data before exporting the report.");
+    return;
+  }
   const lines=activeFilterLines(),out=[];
   lines.forEach(x=>out.push(csvEscape(x)));
   const sn=config.reportLayout.showSerialNumber;
@@ -741,6 +749,10 @@ async function reportImageBlob(includeFilters){
   return new Promise(r=>canvas.toBlob(r,"image/png"));
 }
 async function copyReport(){
+  if(!document.getElementById("reportCapture")){
+    toast("Fetch the Google Sheet and configure the Report before copying.");
+    return;
+  }
   const first=await choiceDialog("Copy report","Choose what to include.",[
     {label:"Grid only",value:"grid",primary:true},{label:"Grid + filters",value:"filters"}
   ]);if(!first)return;
@@ -1254,9 +1266,15 @@ function showView(key){
   if(key==="about"){document.getElementById("aboutFormTitle").textContent=config.links.formTitle||"GRID"}
 }
 document.querySelectorAll(".tabbar button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
-document.getElementById("fetchReport").onclick=()=>fetchReportData("fetchReport");document.getElementById("refreshReport").onclick=()=>fetchReportData("refreshReport");
-document.getElementById("copyReport").onclick=copyReport;
-document.getElementById("exportCsv").onclick=exportReportCSV;
+document.getElementById("fetchReport").onclick=()=>fetchReportData("fetchReport");
+document.getElementById("copyReport").onclick=null;
+document.getElementById("exportCsv").onclick=null;
+document.addEventListener("click",e=>{
+  const copy=e.target.closest("#copyReport");
+  if(copy){e.preventDefault();copyReport();return}
+  const exp=e.target.closest("#exportCsv");
+  if(exp){e.preventDefault();exportReportCSV();return}
+});
 
 /* ===================== PWA / UPDATE SUPPORT ===================== */
 function setupManifest(){
@@ -1289,6 +1307,11 @@ renderSettings();
 document.getElementById("aboutFormTitle").textContent=config.links.formTitle||"GRID";document.getElementById("shareApp").onclick=async()=>{if(navigator.share){try{await navigator.share({title:config.links.formTitle||"GRID",text:"GRID — Google-linked Report & Input Dashboard",url:location.href})}catch(e){}}else{try{await navigator.clipboard.writeText(location.href)}catch(e){}toast("App link copied")}};
 setupServiceWorker();
 })();
+document.addEventListener("click",e=>{
+  const th=e.target.closest("#reportGridWrap th[data-report-sort]");
+  if(!th)return;
+  toggleReportColumnSort(th.dataset.reportSort);
+});
 </script>
 </body>
 </html>
