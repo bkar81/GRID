@@ -13,7 +13,7 @@
 <link id="gridAppleIcon" rel="apple-touch-icon" href="pwa-192x192.png">
 <link rel="manifest" href="manifest.json">
 <style>button{transition:transform .08s ease,filter .08s ease,box-shadow .08s ease}button:active{transform:translateY(1px);filter:brightness(.97)}
-:root{
+ :root{color-scheme:light;
   --bg:#f6f8fb;--surface:#fff;--surface-2:#f2f5f9;--surface-3:#eaf0f7;
   --border:#d7e0eb;--border-soft:#e9eef4;--text:#182335;--text-dim:#5d6b7d;
   --text-faint:#8795a8;--accent:#2864e8;--accent-soft:#eaf1ff;--accent-ink:#fff;
@@ -22,7 +22,25 @@
   --shadow:0 5px 18px rgba(31,55,87,.08);
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace;
+  --input-bg:var(--surface);--topbar-bg:rgba(255,255,255,.96);--tabbar-bg:rgba(255,255,255,.98);
+  --report-bg:#fff;--report-even:#fbfcfe;--report-head:#17243a;--report-total:#e9f2ff;--report-total-text:#16499f;
+  --modal-bg:#fff;--overlay:rgba(20,31,47,.38);--toast-bg:#182335;--hover-soft:#e8f1ff;
 }
+html.dark-theme{color-scheme:dark;
+  --bg:#0b0d10;--surface:#15181d;--surface-2:#1d2229;--surface-3:#232831;
+  --border:#292f38;--border-soft:#22272f;--text:#f1f2f4;--text-dim:#a7acb6;--text-faint:#777d88;
+  --accent:#e2ad43;--accent-soft:#2d271b;--accent-ink:#111;--success:#56c596;--success-soft:#183127;
+  --danger:#ef6b6b;--danger-soft:#351d20;--warn:#e1ae4b;--warn-soft:#342b1a;
+  --shadow:0 6px 22px rgba(0,0,0,.28);--input-bg:#171b21;--topbar-bg:rgba(11,13,16,.96);--tabbar-bg:rgba(17,20,25,.98);
+  --report-bg:#15181d;--report-even:#191d23;--report-head:#20252d;--report-total:#1d2b3d;--report-total-text:#f0c46a;
+  --modal-bg:#15181d;--overlay:rgba(0,0,0,.62);--toast-bg:#f1f2f4;--hover-soft:#282d35;
+}
+.dark-theme .submit-btn,.dark-theme .btn{color:var(--accent-ink)}
+.dark-theme .btn.danger{color:var(--danger)}
+.dark-theme .choice-btn.primary{color:var(--accent);border-color:#5d4b28}
+input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}
+.dark-theme .report-grid thead th{color:#fff}
+.dark-theme .report-sortable:hover{background:#2b3038}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
@@ -33,7 +51,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid rgba(40,100,232,.18);b
 textarea{min-height:86px;resize:vertical}
 .hidden{display:none!important}.mono{font-family:var(--mono)}
 #app{width:100%;max-width:520px;min-height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--surface)}
-.topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px}#app.about-view .topbar{display:none}
+.topbar{position:sticky;top:0;z-index:20;background:var(--topbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px}#app.about-view .topbar{display:none}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex:0 0 auto}.brand-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .brand-copy{min-width:0}.brand-title{font-size:16px;font-weight:800;line-height:1.15}.brand-sub{font-size:10px;color:var(--text-faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -49,15 +67,15 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .submit-btn{width:100%;border:0;background:var(--accent);color:#fff;border-radius:11px;padding:14px 16px;font-weight:800;font-size:15px;box-shadow:0 4px 12px rgba(40,100,232,.22)}
 .submit-btn:active{transform:translateY(1px)}.submit-btn:disabled{opacity:.6;cursor:wait}
 .inline-message{display:none;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.45;margin-bottom:12px}.inline-message.show{display:block}.inline-message.success{background:var(--success-soft);color:var(--success);border:1px solid #bfe8d0}.inline-message.error{background:var(--danger-soft);color:var(--danger);border:1px solid #f1c6c6}.inline-message.warn{background:var(--warn-soft);color:var(--warn);border:1px solid #efd99a}
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:520px;margin:0 auto;display:flex;background:rgba(255,255,255,.98);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 14px rgba(31,55,87,.06)}
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;max-width:520px;margin:0 auto;display:flex;background:var(--tabbar-bg);border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 14px rgba(31,55,87,.06)}
 .tabbar button{flex:1;border:0;background:none;padding:9px 0 8px;color:var(--text-faint);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:3px}.tabbar button .ic{font-size:17px;line-height:1}.tabbar button.active{color:var(--accent)}
 .toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:10px}.toolbar-spacer{flex:1}
 .btn{border:1px solid var(--accent);background:var(--accent);border-radius:9px;padding:8px 11px;font-size:12px;font-weight:800;color:#fff}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.ghost{background:var(--surface-2)}.btn.danger{background:var(--danger-soft);border-color:#f1c6c6;color:var(--danger)}.btn:disabled{opacity:.5;cursor:not-allowed}
-.filter-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:9px}.compact-select{min-width:150px;flex:0 1 auto;padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--text);font:inherit;font-size:12px}
+.filter-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;margin-bottom:9px}.compact-select{min-width:150px;flex:0 1 auto;padding:8px 28px 8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--input-bg);color:var(--text);font:inherit;font-size:12px}
 .filter-chip{flex:0 0 auto;border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:7px 10px;font-size:11px;font-weight:800;color:var(--text-dim)}.filter-chip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
-.report-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:#fff}.report-grid{border-collapse:collapse;width:100%;min-width:340px;font-size:12px}.report-grid th,.report-grid td{border-bottom:1px solid var(--border-soft);border-right:1px solid var(--border-soft);padding:7px 8px;text-align:right;white-space:nowrap}.report-grid th:last-child,.report-grid td:last-child{border-right:0}.report-grid th:first-child,.report-grid td:first-child{text-align:left}.report-grid thead th{background:#17243a;color:#fff;font-size:11px;font-weight:800}.report-grid tbody tr:nth-child(even){background:#fbfcfe}.report-grid .total-row td{background:#e9f2ff;color:#16499f;font-weight:900;border-top:1px solid #bfd3f3}.report-empty{padding:34px 15px;text-align:center;color:var(--text-faint);font-size:13px}
+.report-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--report-bg)}.report-grid{border-collapse:collapse;width:100%;min-width:340px;font-size:12px}.report-grid th,.report-grid td{border-bottom:1px solid var(--border-soft);border-right:1px solid var(--border-soft);padding:7px 8px;text-align:right;white-space:nowrap}.report-grid th:last-child,.report-grid td:last-child{border-right:0}.report-grid th:first-child,.report-grid td:first-child{text-align:left}.report-grid thead th{background:var(--report-head);color:#fff;font-size:11px;font-weight:800}.report-grid tbody tr:nth-child(even){background:var(--report-even)}.report-grid .total-row td{background:var(--report-total);color:var(--report-total-text);font-weight:900;border-top:1px solid #bfd3f3}.report-empty{padding:34px 15px;text-align:center;color:var(--text-faint);font-size:13px}
 .auth-card{text-align:center;padding:26px 16px}.auth-icon{width:44px;height:44px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-weight:900}.auth-icon img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.auth-card h3{margin:0 0 6px;font-size:16px}.auth-card p{margin:0 0 15px;color:var(--text-dim);font-size:12px;line-height:1.5}
-.seg{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--border);padding:3px;border-radius:10px;margin-bottom:13px;overflow:auto}.seg button{flex:1;min-width:74px;border:0;border-radius:7px;background:none;padding:8px 7px;color:var(--text-faint);font-size:11px;font-weight:800}.seg button.active{background:#fff;color:var(--accent);box-shadow:0 1px 4px rgba(31,55,87,.1)}
+.seg{display:flex;gap:3px;background:var(--surface-2);border:1px solid var(--border);padding:3px;border-radius:10px;margin-bottom:13px;overflow:auto}.seg button{flex:1;min-width:74px;border:0;border-radius:7px;background:none;padding:8px 7px;color:var(--text-faint);font-size:11px;font-weight:800}.seg button.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 4px rgba(31,55,87,.1)}
 .settings-section{margin-bottom:18px}.section-title{font-size:11px;font-weight:900;color:var(--text-faint);letter-spacing:.6px;text-transform:uppercase;margin:0 0 8px}.settings-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.compact-action{width:auto!important;min-height:34px;padding:7px 11px;white-space:nowrap}
 .settings-row{border:1px solid var(--border);background:var(--surface);border-radius:10px;padding:11px 12px;margin-bottom:8px}.settings-row-head{display:flex;align-items:center;gap:8px}.drag-handle,.default-drag-handle{width:22px;min-width:22px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--text-faint);font-size:20px;font-weight:900;letter-spacing:-4px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.drag-handle:active,.default-drag-handle:active{cursor:grabbing}.settings-row.dragging,.default-row.dragging{
   position:relative;
@@ -91,15 +109,17 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .status-card{display:flex;align-items:center;gap:10px}.status-dot{width:9px;height:9px;border-radius:50%;background:var(--text-faint);flex:0 0 auto}.status-dot.ok{background:var(--success)}.status-dot.warn{background:#d99419}
 .status-email{font-size:11px;color:var(--accent);font-weight:800}.small{font-size:11px;color:var(--text-faint);line-height:1.45}
 .about-section p{margin:0}.defaults-list{margin-top:9px}.default-row{display:flex;gap:6px;align-items:center;margin-bottom:6px}.default-row select,.default-row input{flex:1}.fetch-box{background:var(--accent-soft);border:1px solid #c9d9fb;color:#2857ae;border-radius:10px;padding:10px 11px;font-size:11px;line-height:1.5;margin-bottom:10px}.report-source-status{font-size:11px;color:var(--text-dim);margin:5px 0 9px}.detected-entry{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:8px;margin-top:6px}.detected-entry select{max-width:55%}.reset-card{margin-top:10px}.danger-icon{color:var(--danger);border-color:#f0b8b8;background:var(--danger-soft)}.about-hero{display:flex;gap:13px;align-items:center}.about-logo{width:58px;height:58px;border-radius:15px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:900;flex:0 0 auto}.about-logo img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.about-hero h2{margin:0 0 3px;font-size:20px}.about-hero p{margin:0;color:var(--text-dim);font-size:11px;line-height:1.45}.feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.feature{border:1px solid var(--border);border-radius:9px;padding:10px;background:var(--surface-2)}.feature b{display:block;font-size:11px;margin-bottom:3px}.feature span{font-size:10px;color:var(--text-faint);line-height:1.35}
-.modal-backdrop{position:fixed;inset:0;background:rgba(20,31,47,.38);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:14px}.modal{width:min(520px,100%);max-height:min(88vh,700px);overflow:auto;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(20,31,47,.25);padding:16px}.modal.center{align-self:center}.modal h3{margin:0 0 7px;font-size:16px}.modal p{margin:0 0 12px;color:var(--text-dim);font-size:12px;line-height:1.5}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.modal-actions .btn{min-width:80px}.choice-btn{width:100%;text-align:left;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:11px;margin:6px 0;font-size:13px;font-weight:800}.choice-btn.primary{background:var(--accent-soft);border-color:#bfd1f5;color:#1e53b8}
+.modal-backdrop{position:fixed;inset:0;background:var(--overlay);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:14px}.modal{width:min(520px,100%);max-height:min(88vh,700px);overflow:auto;background:var(--modal-bg);border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 60px rgba(20,31,47,.25);padding:16px}.modal.center{align-self:center}.modal h3{margin:0 0 7px;font-size:16px}.modal p{margin:0 0 12px;color:var(--text-dim);font-size:12px;line-height:1.5}.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}.modal-actions .btn{min-width:80px}.choice-btn{width:100%;text-align:left;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:11px;margin:6px 0;font-size:13px;font-weight:800}.choice-btn.primary{background:var(--accent-soft);border-color:#bfd1f5;color:#1e53b8}
 .step{display:none}.step.active{display:block}.step-label{font-size:10px;color:var(--text-faint);font-weight:900;text-transform:uppercase;letter-spacing:.6px;margin-bottom:9px}
-.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(15px);z-index:200;opacity:0;pointer-events:none;background:#182335;color:#fff;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;transition:.18s;max-width:calc(100% - 28px);text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.update-notice{display:none;position:fixed;left:12px;right:12px;bottom:76px;z-index:90;background:#fff;border:1px solid #bfd1f5;border-radius:13px;padding:13px;box-shadow:var(--shadow)}.update-notice.show{display:block}.update-notice b{font-size:13px}.update-notice p{font-size:11px;color:var(--text-dim);margin:4px 0 10px}.update-actions{display:flex;justify-content:flex-end;gap:7px}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%) translateY(15px);z-index:200;opacity:0;pointer-events:none;background:var(--toast-bg);color:var(--accent-ink);border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;transition:.18s;max-width:calc(100% - 28px);text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.update-notice{display:none;position:fixed;left:12px;right:12px;bottom:76px;z-index:90;background:var(--modal-bg);border:1px solid #bfd1f5;border-radius:13px;padding:13px;box-shadow:var(--shadow)}.update-notice.show{display:block}.update-notice b{font-size:13px}.update-notice p{font-size:11px;color:var(--text-dim);margin:4px 0 10px}.update-actions{display:flex;justify-content:flex-end;gap:7px}
 @media(max-width:430px){.field-edit-grid{grid-template-columns:1fr}.feature-grid,.check-grid{grid-template-columns:1fr}.choice-list.radio-list{grid-template-columns:1fr}}
 .report-sortable{cursor:pointer;user-select:none;white-space:nowrap}
-.report-sortable:hover{background:#e8f1ff}
+.report-sortable:hover{background:var(--hover-soft)}
 .report-sort-arrow{font-size:10px;margin-left:4px;opacity:.9}
+ .theme-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:12px}.theme-title{font-size:12px;font-weight:900}.theme-subtitle{font-size:10px;color:var(--text-faint);margin-top:2px}.theme-switch{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;flex:0 0 auto}.theme-switch input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.theme-switch-track{width:42px;height:24px;border-radius:999px;background:var(--surface-3);border:1px solid var(--border);padding:2px;display:flex;align-items:center;transition:.18s}.theme-switch-knob{width:18px;height:18px;border-radius:50%;background:var(--text-faint);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}.theme-switch input:checked+.theme-switch-track{background:var(--accent);border-color:var(--accent);justify-content:flex-end}.theme-switch input:checked+.theme-switch-track .theme-switch-knob{background:var(--accent-ink)}.theme-switch-label{font-size:11px;font-weight:800;color:var(--text-dim);min-width:31px}.theme-switch input:focus-visible+.theme-switch-track{outline:2px solid var(--accent);outline-offset:2px}
 </style>
+<script>try{if(localStorage.getItem("grid.theme.v1")==="dark")document.documentElement.classList.add("dark-theme")}catch(e){}</script>
 </head>
 <body>
 <div id="app">
@@ -142,6 +162,10 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
     <section class="view" id="view-settings">
       <div class="page-title">Settings</div>
       <div class="page-subtitle">Private configuration · owner access</div>
+      <div class="card theme-card">
+        <div><div class="theme-title">Theme</div><div class="theme-subtitle">Choose how GRID looks across all pages.</div></div>
+        <label class="theme-switch" title="Toggle dark theme"><input type="checkbox" id="darkThemeToggle"><span class="theme-switch-track"><span class="theme-switch-knob"></span></span><span class="theme-switch-label">Light</span></label>
+      </div>
       <div id="settingsAuth"></div>
       <div id="settingsPrivate" class="hidden">
         <div class="seg" id="settingsTabs">
@@ -161,7 +185,7 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
       <div class="card about-section"><div class="section-title">Installing GRID</div><p class="small">Open GRID in Chrome or another supported browser over HTTPS, then use the browser's <b>Install app</b> / <b>Add to Home screen</b> option. The PWA works as a standalone app and can use the cached shell when offline.</p></div>
       <div class="card about-section"><div class="section-title">Data &amp; privacy</div><p class="small">Home sends the values you enter directly to the configured Google Form. GRID does not keep submitted entries in its own database. Report reads the linked Google Sheet only after you explicitly fetch/refresh it and Google access has been granted. GRID's local settings contain configuration, not Google login tokens.</p></div>
       <div class="card about-section"><div class="section-title">Legal</div><p class="small">GRID is a client-side utility. Google Forms, Google Sheets, Google Drive and Google authentication remain Google services subject to Google's own terms and policies. The GRID operator is responsible for the forms, sheets, data and permissions configured in the app.</p></div>
-      <div class="card about-section"><div class="section-title">Version</div><p class="small"><b>GRID 1.0.0</b><br>Light-theme PWA · Google-linked Report &amp; Input Dashboard</p><p class="small" id="updateStatus">Checking service-worker status…</p><button class="btn" id="checkUpdate" style="margin-top:9px;width:100%">↻ Check for updates</button></div>
+      <div class="card about-section"><div class="section-title">Version</div><p class="small"><b>GRID 1.0.0</b><br>Light/Dark theme PWA · Google-linked Report &amp; Input Dashboard</p><p class="small" id="updateStatus">Checking service-worker status…</p><button class="btn" id="checkUpdate" style="margin-top:9px;width:100%">↻ Check for updates</button></div>
       <div class="card about-section"><div class="section-title">Sharing / forking GRID</div><p class="small">You can share the hosted GRID URL with other users. A fork/copy should use its own Google OAuth Web Client ID and its own configured Form/Sheet links. Exported JSON can transfer the GRID configuration, while each device signs into Google separately.</p><button class="btn" id="shareApp" style="width:100%;margin-top:10px">↗ Share this app</button></div>
     </section>
   </main>
@@ -189,6 +213,7 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 
 /* ===================== GRID APP CONFIG ===================== */
 const GRID_VERSION = "1.0.0";
+const THEME_KEY = "grid.theme.v1";
 const LS_KEY = "grid.config.v2";
 const SYNC_KEY = "grid.sync.v1";
 const SYNC_BASE_KEY = "grid.sync.base.v1";
@@ -960,10 +985,31 @@ function downloadBlob(content,filename,type){
   const blob=content instanceof Blob?content:new Blob([content],{type});const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)
 }
 
+/* ===================== THEME ===================== */
+function isDarkTheme(){return document.documentElement.classList.contains("dark-theme")}
+function applyTheme(dark,save=true){
+  document.documentElement.classList.toggle("dark-theme",!!dark);
+  if(save){try{localStorage.setItem(THEME_KEY,dark?"dark":"light")}catch(e){}}
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta)meta.content=dark?"#0b0d10":"#ffffff";
+  const toggle=document.getElementById("darkThemeToggle");
+  if(toggle)toggle.checked=!!dark;
+  const label=toggle?.closest(".theme-switch")?.querySelector(".theme-switch-label");
+  if(label)label.textContent=dark?"Dark":"Light";
+}
+function bindThemeToggle(){
+  const toggle=document.getElementById("darkThemeToggle");
+  if(!toggle)return;
+  toggle.checked=isDarkTheme();
+  toggle.onchange=()=>applyTheme(toggle.checked,true);
+  applyTheme(isDarkTheme(),false);
+}
+
 /* ===================== SETTINGS UI ===================== */
 let settingsTab="links";
 function renderSettings(){
   const auth=document.getElementById("settingsAuth"),priv=document.getElementById("settingsPrivate");
+  bindThemeToggle();
   // Settings configuration is local to this device and must remain visible even
   // before Google authentication. Google access is required only for Sheet/Drive
   // operations (Report fetch and Sync).
@@ -1582,6 +1628,7 @@ document.getElementById("updateNow").onclick=()=>{const w=waitingWorker||swReg?.
 let refreshing=false;navigator.serviceWorker?.addEventListener("controllerchange",()=>{if(refreshing)return;refreshing=true;location.reload()});
 
 /* ===================== START ===================== */
+applyTheme(isDarkTheme(),false);
 renderHome();
 renderReport();
 renderSettings();
