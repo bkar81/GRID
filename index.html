@@ -956,6 +956,7 @@ async function reportImageBlob(includeFilters){
   reportClone.style.width="max-content";reportClone.style.maxWidth="none";reportClone.style.minWidth="0";reportClone.style.boxSizing="border-box";reportClone.style.overflow="visible";
   const table=reportClone.querySelector(".report-grid");
   if(table){table.style.width="max-content";table.style.minWidth="0";table.style.maxWidth="none";table.style.tableLayout="auto";table.style.overflow="visible";table.querySelectorAll("th,td").forEach(c=>c.style.whiteSpace="nowrap")}
+  table.querySelectorAll("td").forEach(c=>c.style.color=document.documentElement.classList.contains("dark-theme")?"#fff":"#182335");
   box.appendChild(reportClone);document.body.appendChild(box);
   // Force layout before measuring. The clone is intentionally unconstrained so every column is included.
   const captureWidth=Math.ceil(box.scrollWidth);
