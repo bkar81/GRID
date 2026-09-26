@@ -191,7 +191,12 @@ const GRID_VERSION = "1.0.0";
 const LS_KEY = "grid.config.v2";
 const SYNC_KEY = "grid.sync.v1";
 const SYNC_BASE_KEY = "grid.sync.base.v1";
-const DRIVE_FILE_NAME = "grid-settings.json";
+function getDriveSettingsFileName(){
+  const title=(config?.links?.formTitle||"").trim();
+  const safeTitle=title.replace(/[\\/:*?"<>|\u0000-\u001F]/g,"_").replace(/\s+/g," ").trim();
+  return safeTitle?`grid-settings_${safeTitle}.json`:"grid-settings_default.json";
+}
+function escapeDriveQueryValue(value){return String(value).replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
 
 /* Replace this with the OAuth client ID configured for the GRID deployment. */
 const GRID_GOOGLE_CLIENT_ID = "399109919198-bo3l7q2muggpoamlrbf3nvhki69o1l9g.apps.googleusercontent.com";
@@ -1228,16 +1233,30 @@ function hashString(str){
   h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)
 }
 function configHash(c){return hashString(JSON.stringify(c))}
-function loadBase(fileId){try{const x=JSON.parse(localStorage.getItem(SYNC_BASE_KEY)||"null");return x&&x.fileId===fileId?x.snapshot:null}catch(e){return null}}
-function saveBase(fileId,c){localStorage.setItem(SYNC_BASE_KEY,JSON.stringify({fileId,snapshot:clone(c),hash:configHash(c)}))}
-async function driveFiles(){
-  const q=encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+function loadBase(fileId){
+  try{
+    const x=JSON.parse(localStorage.getItem(SYNC_BASE_KEY)||"null");
+    if(x?.entries?.[fileId])return x.entries[fileId].snapshot||null;
+    if(x&&x.fileId===fileId)return x.snapshot||null;
+    return null;
+  }catch(e){return null}
+}
+function saveBase(fileId,c){
+  try{
+    const x=JSON.parse(localStorage.getItem(SYNC_BASE_KEY)||"null")||{};
+    const entries=x.entries||{};
+    entries[fileId]={snapshot:clone(c),hash:configHash(c)};
+    localStorage.setItem(SYNC_BASE_KEY,JSON.stringify({entries}));
+  }catch(e){}
+}
+async function driveFiles(fileName=getDriveSettingsFileName()){
+  const q=encodeURIComponent(`name='${escapeDriveQueryValue(fileName)}' and trashed=false`);
   const r=await googleRequest(`https://www.googleapis.com/drive/v3/files?q=${q}&orderBy=modifiedTime%20desc&fields=files(id,name,modifiedTime)&spaces=drive`);
   return (await r.json()).files||[];
 }
 async function driveDownload(id){return (await googleRequest(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`)).text()}
-async function driveUpload(id,content){
-  const boundary="gridboundary"+Date.now(),meta={name:DRIVE_FILE_NAME,mimeType:"application/json"};
+async function driveUpload(id,content,fileName=getDriveSettingsFileName()){
+  const boundary="gridboundary"+Date.now(),meta={name:fileName,mimeType:"application/json"};
   const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${boundary}--`;
   const url=id?`https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`:`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
   const r=await googleRequest(url,{method:id?"PATCH":"POST",headers:{"Content-Type":`multipart/related; boundary=${boundary}`},body});return r.json()
@@ -1256,25 +1275,60 @@ function mergeConfig(local,remote,base){
 async function driveSyncNow(){
   if(!navigator.onLine){toast("Connect to the internet before syncing.");return}
   if(!hasToken()){if(!(await privateAccess()))return}
-  const files=await driveFiles();let fileId=syncConfig.driveFileId&&files.some(f=>f.id===syncConfig.driveFileId)?syncConfig.driveFileId:(files[0]?.id||null);
+
+  const driveFileName=getDriveSettingsFileName();
+  const files=await driveFiles(driveFileName);
+  let fileId=syncConfig.driveFileId&&files.some(f=>f.id===syncConfig.driveFileId)?syncConfig.driveFileId:(files[0]?.id||null);
+
   if(files.length>1){
-    const choice=await choiceDialog("Multiple GRID settings files",`Google Drive has ${files.length} files named "${DRIVE_FILE_NAME}". GRID will use the newest/remembered file.`,[{label:"Cancel",value:"cancel"},{label:"Continue",value:"go",primary:true}]);if(choice!=="go")return;
+    const choice=await choiceDialog("Multiple GRID settings files",`Google Drive has ${files.length} files named "${driveFileName}". GRID will use the newest/remembered file.`,[{label:"Cancel",value:"cancel"},{label:"Continue",value:"go",primary:true}]);
+    if(choice!=="go")return;
   }
-  let remote=null;if(fileId){try{remote=JSON.parse(await driveDownload(fileId))}catch(e){toast("The GRID settings file on Drive is not valid JSON.");return}}
-  const local=canonicalConfig(),base=fileId?loadBase(fileId):null,lh=configHash(local),rh=remote?configHash(remote):null,bh=base?configHash(base):null;
-  let finalConfig=local,upload=true;
-  if(!remote){upload=true}
-  else if(lh===rh){upload=false}
-  else if(base&&lh===bh&&rh!==bh){finalConfig=remote;upload=false;await toastAsync("Drive has newer settings. Restoring them…")}
-  else if(base&&lh!==bh&&rh===bh){upload=true}
-  else if(base&&lh!==bh&&rh!==bh){const choice=await choiceDialog("Both sides changed","This device and Google Drive both changed since the last sync. Choose how to continue.",[
-      {label:"Cancel",value:"cancel"},{label:"Keep this device",value:"local"},{label:"Merge",value:"merge",primary:true}]);if(choice==="cancel")return;if(choice==="merge")finalConfig=mergeConfig(local,remote,base);upload=true}
-  else if(!base){const choice=await choiceDialog("Drive already has settings","This device and Google Drive both have settings, but this device has no previous sync baseline.",[{label:"Cancel",value:"cancel"},{label:"Use Drive",value:"remote"},{label:"Overwrite Drive",value:"local",primary:true}]);if(choice==="cancel")return;if(choice==="remote"){finalConfig=remote;upload=false}}
-  config=clone(finalConfig);defaultDraftRows=null;saveConfig();
-  if(upload){const r=await driveUpload(fileId,JSON.stringify(canonicalConfig()));fileId=r.id||fileId}
+
+  let remote=null;
+  if(fileId){
+    try{remote=JSON.parse(await driveDownload(fileId))}
+    catch(e){toast("The GRID settings file on Drive is not valid JSON.");return}
+  }
+
+  const local=canonicalConfig();
+  const base=fileId?loadBase(fileId):null;
+  const sameFileAsLastSync=syncConfig.driveFileId===fileId && syncConfig.driveFileName===driveFileName;
+  let finalConfig=local,upload=!remote;
+
+  if(remote){
+    const rh=configHash(remote),lh=configHash(local),bh=base?configHash(base):null;
+    if(lh===rh){
+      upload=false;
+    }else if(!sameFileAsLastSync || !base){
+      // Changing the Form Title selects a different configuration. If that file
+      // already exists, restore it rather than overwriting it with the previous view.
+      finalConfig=remote;upload=false;
+    }else if(lh===bh && rh!==bh){
+      finalConfig=remote;upload=false;await toastAsync("Drive has newer settings. Restoring them…");
+    }else if(lh!==bh && rh===bh){
+      upload=true;
+    }else if(lh!==bh && rh!==bh){
+      const choice=await choiceDialog("Both sides changed","This device and Google Drive both changed since the last sync. Choose how to continue.",[
+        {label:"Cancel",value:"cancel"},{label:"Keep this device",value:"local"},{label:"Merge",value:"merge",primary:true}]);
+      if(choice==="cancel")return;
+      if(choice==="merge")finalConfig=mergeConfig(local,remote,base);
+      upload=true;
+    }
+  }
+
+  config=clone(finalConfig);
+  defaultDraftRows=null;
+  saveConfig();
+  if(upload){const r=await driveUpload(fileId,JSON.stringify(canonicalConfig()),driveFileName);fileId=r.id||fileId}
   if(fileId)saveBase(fileId,canonicalConfig());
-  syncConfig.driveFileId=fileId;syncConfig.lastSyncedAt=new Date().toISOString();syncConfig.wasConnected=true;saveSyncConfig();
-  renderHome();renderReport();renderSettings();toast(upload?"Synced settings to Google Drive.":"Settings restored from Google Drive.");
+  syncConfig.driveFileId=fileId;
+  syncConfig.driveFileName=driveFileName;
+  syncConfig.lastSyncedAt=new Date().toISOString();
+  syncConfig.wasConnected=true;
+  saveSyncConfig();
+  renderHome();renderReport();renderSettings();
+  toast(upload?`Settings synced to Google Drive as ${driveFileName}.`:`Settings restored from Google Drive (${driveFileName}).`);
 }
 function toastAsync(msg){toast(msg);return Promise.resolve()}
 async function exportSettings(){
@@ -1315,7 +1369,7 @@ function bindSettingsTab(){
     document.getElementById("saveLinks").onclick=()=>{
       config.links.formViewUrl=document.getElementById("cfgFormUrl").value.trim();
       config.links.sheetUrl=document.getElementById("cfgSheetUrl").value.trim();
-      config.links.formTitle=document.getElementById("cfgFormTitle").value.trim()||"GRID";
+      config.links.formTitle=document.getElementById("cfgFormTitle").value.trim();
       saveConfig();renderHome(true);renderReport();document.getElementById("aboutFormTitle").textContent=config.links.formTitle;toast("Links saved")
     };
   }
