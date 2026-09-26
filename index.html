@@ -1245,7 +1245,7 @@ async function driveUpload(id,content){
 function mergeConfig(local,remote,base){
   const out=clone(local||remote);
   if(!base)return out;
-  ["links","fields","reportLayout"].forEach(k=>{
+  ["links","fields","defaultValueRows","reportLayout"].forEach(k=>{
     const l=configHash(local?.[k]||null),r=configHash(remote?.[k]||null),b=configHash(base?.[k]||null);
     if(l===b&&r!==b)out[k]=clone(remote[k]);
     else if(l!==b&&r===b)out[k]=clone(local[k]);
@@ -1270,7 +1270,7 @@ async function driveSyncNow(){
   else if(base&&lh!==bh&&rh!==bh){const choice=await choiceDialog("Both sides changed","This device and Google Drive both changed since the last sync. Choose how to continue.",[
       {label:"Cancel",value:"cancel"},{label:"Keep this device",value:"local"},{label:"Merge",value:"merge",primary:true}]);if(choice==="cancel")return;if(choice==="merge")finalConfig=mergeConfig(local,remote,base);upload=true}
   else if(!base){const choice=await choiceDialog("Drive already has settings","This device and Google Drive both have settings, but this device has no previous sync baseline.",[{label:"Cancel",value:"cancel"},{label:"Use Drive",value:"remote"},{label:"Overwrite Drive",value:"local",primary:true}]);if(choice==="cancel")return;if(choice==="remote"){finalConfig=remote;upload=false}}
-  config=clone(finalConfig);saveConfig();
+  config=clone(finalConfig);defaultDraftRows=null;saveConfig();
   if(upload){const r=await driveUpload(fileId,JSON.stringify(canonicalConfig()));fileId=r.id||fileId}
   if(fileId)saveBase(fileId,canonicalConfig());
   syncConfig.driveFileId=fileId;syncConfig.lastSyncedAt=new Date().toISOString();syncConfig.wasConnected=true;saveSyncConfig();
@@ -1283,7 +1283,7 @@ async function exportSettings(){
 function importSettings(){
   const i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=async()=>{
     const f=i.files?.[0];if(!f)return;
-    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};config=c;config.grid_version=GRID_VERSION;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
+    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};config=c;config.grid_version=GRID_VERSION;defaultDraftRows=null;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
     catch(e){toast("That file is not a valid GRID settings backup.")}
   };i.click()
 }
