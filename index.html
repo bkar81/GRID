@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link id="gridIcon" rel="icon" type="image/png" href="pwa-192x192.png">
 <link id="gridAppleIcon" rel="apple-touch-icon" href="pwa-192x192.png">
-<link id="gridManifest" rel="manifest">
+<link rel="manifest" href="manifest.json">
 <style>button{transition:transform .08s ease,filter .08s ease,box-shadow .08s ease}button:active{transform:translateY(1px);filter:brightness(.97)}
 :root{
   --bg:#f6f8fb;--surface:#fff;--surface-2:#f2f5f9;--surface-3:#eaf0f7;
@@ -1427,10 +1427,6 @@ document.addEventListener("click",e=>{
 });
 
 /* ===================== PWA / UPDATE SUPPORT ===================== */
-function setupManifest(){
-  const manifest={name:"GRID — Google-linked Report & Input Dashboard",short_name:"GRID",start_url:"./",display:"standalone",background_color:"#ffffff",theme_color:"#2864e8",description:"Google-linked Report & Input Dashboard",icons:[{src:"pwa-192x192.png",sizes:"192x192",type:"image/png",purpose:"any"},{src:"pwa-512x512.png",sizes:"512x512",type:"image/png",purpose:"any"},{src:"pwa-maskable-512x512.png",sizes:"512x512",type:"image/png",purpose:"maskable"}]};
-  const blob=new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}),url=URL.createObjectURL(blob);document.getElementById("gridManifest").href=url;
-}
 let swReg=null,waitingWorker=null;
 async function setupServiceWorker(){
   if(!("serviceWorker" in navigator))return;
@@ -1450,7 +1446,6 @@ document.getElementById("updateNow").onclick=()=>{const w=waitingWorker||swReg?.
 let refreshing=false;navigator.serviceWorker?.addEventListener("controllerchange",()=>{if(refreshing)return;refreshing=true;location.reload()});
 
 /* ===================== START ===================== */
-setupManifest();
 renderHome();
 renderReport();
 renderSettings();
