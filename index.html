@@ -222,6 +222,7 @@ const EMPTY_CONFIG = {
     filterField: null,
     showSerialNumber: true,
     periodField: null,
+    periodFormat: "",
     measureAggregations: {}
   }
 };
@@ -256,6 +257,7 @@ function loadConfig(){
     c.reportLayout.filterFields ||= c.reportLayout.filterField ? [c.reportLayout.filterField] : [];
     c.reportLayout.filterFields = [...new Set((c.reportLayout.filterFields||[]).filter(Boolean))];
     c.reportLayout.periodField ??= null;
+    c.reportLayout.periodFormat ??= "";
     c.reportLayout.showSerialNumber ??= true;
     c.reportLayout.measureAggregations ||= {};
     return c;
@@ -595,7 +597,8 @@ function currentColumnValues(){
   const base=(f.options||[]).slice();
   uniqueSheetValues(f).forEach(v=>{if(!base.includes(v))base.push(v)});
   const ticks=config.reportLayout.columnsValues||[];
-  return base.filter(v=>ticks.includes(v));
+  const vals=base.filter(v=>ticks.includes(v));
+  return sortDateAwareValues(vals,f);
 }
 function aggregate(rows,field,aggregation=null){
   const nums=rows.map(r=>Number(sheetValue(r,field))).filter(n=>Number.isFinite(n));
@@ -626,17 +629,70 @@ function rowsOrder(f,rows=reportRows){
   });
   return vals;
 }
-function compareReportValues(a,b){
+const MONTH_NAMES=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MONTH_SHORT=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function parseDateLike(value){
+  const raw=String(value??"").trim();
+  if(!raw)return null;
+  let m;
+  if((m=raw.match(/^(\d{4})[-/]?(\d{1,2})(?:[-/]?(\d{1,2}))?$/))){
+    const y=Number(m[1]),mo=Number(m[2])-1,d=Number(m[3]||1);
+    const dt=new Date(y,mo,d);
+    if(dt.getFullYear()===y&&dt.getMonth()===mo&&dt.getDate()===d)return dt;
+  }
+  if((m=raw.match(/^([A-Za-z]{3,9})[\s._/-]+(\d{2,4})(?:[\s._/-]+(\d{1,2}))?$/))){
+    const monthName=m[1].toLowerCase();
+    const mi=MONTH_NAMES.findIndex(x=>x.toLowerCase()===monthName);
+    const si=MONTH_SHORT.findIndex(x=>x.toLowerCase()===monthName);
+    const mo=mi>=0?mi:si;
+    if(mo>=0){
+      const yy=Number(m[2]),y=yy<100?2000+yy:yy,d=Number(m[3]||1);
+      const dt=new Date(y,mo,d);
+      if(dt.getFullYear()===y&&dt.getMonth()===mo&&dt.getDate()===d)return dt;
+    }
+  }
+  if((m=raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/))){
+    let a=Number(m[1]),b=Number(m[2]),y=Number(m[3]); y=y<100?2000+y:y;
+    let d,mo;
+    if(a>12){d=a;mo=b-1}else if(b>12){mo=a-1;d=b}else{d=a;mo=b-1}
+    const dt=new Date(y,mo,d);
+    if(dt.getFullYear()===y&&dt.getMonth()===mo&&dt.getDate()===d)return dt;
+  }
+  const parsed=Date.parse(raw);
+  return Number.isNaN(parsed)?null:new Date(parsed);
+}
+function formatDateLike(value,format){
+  if(!format)return String(value??"");
+  const dt=parseDateLike(value);
+  if(!dt)return String(value??"");
+  const y=dt.getFullYear(),yy=String(y).slice(-2),m=dt.getMonth()+1,d=dt.getDate();
+  const tokens={yyyy:String(y),yy:yy,M:String(m),MM:String(m).padStart(2,"0"),d:String(d),dd:String(d).padStart(2,"0"),MMM:MONTH_SHORT[m-1]};
+  return format.replace(/yyyy|MMM|MM|dd|yy|M|d/g,t=>tokens[t]);
+}
+function dateField(){return fieldById(config.reportLayout.periodField)}
+function dateAwareCompare(a,b,f){
+  const df=dateField();
+  if(df&&f?.id===df.id){
+    const da=parseDateLike(a),db=parseDateLike(b);
+    if(da&&db)return da.getTime()-db.getTime();
+    if(da&&!db)return -1;
+    if(!da&&db)return 1;
+  }
   const na=Number(String(a).replace(/,/g,"")),nb=Number(String(b).replace(/,/g,""));
   if(Number.isFinite(na)&&Number.isFinite(nb))return na-nb;
   return String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"});
 }
+function sortDateAwareValues(values,f){
+  if(!dateField()||!f||f.id!==dateField().id)return values;
+  return [...values].sort((a,b)=>dateAwareCompare(a,b,f));
+}
+function compareReportValues(a,b,f){return dateAwareCompare(a,b,f)}
 function sortReportRowGroups(groups,rows,rowFs){
   const indexed=groups.map((group,index)=>({group,index,firstIndex:group.firstIndex}));
   if(reportSortBy==="serial")indexed.sort((a,b)=>a.firstIndex-b.firstIndex);
   else indexed.sort((a,b)=>{
     for(let i=0;i<rowFs.length;i++){
-      const c=compareReportValues(a.group.values[i],b.group.values[i]);
+      const c=compareReportValues(a.group.values[i],b.group.values[i],rowFs[i]);
       if(c!==0)return c;
     }
     return a.firstIndex-b.firstIndex;
@@ -692,8 +748,9 @@ function renderReportGrid(){
   const sn=config.reportLayout.showSerialNumber;
   const displayRows=reportDisplayRows(m);
   const rowHeaders=m.rowFs.map((f,i)=>i===0?reportSortHeader("row",f.label):`<th>${esc(f.label)}</th>`).join("");
-  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?reportSortHeader("serial","#"): ""}${rowHeaders}${m.colVals.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
-  displayRows.forEach((item,i)=>{const values=item.group.values;const matrixRow=m.matrix[item.index];h+=`<tr>${sn?`<td>${i+1}</td>`:""}${values.map(v=>`<td><b>${esc(v||"—")}</b></td>`).join("")}${matrixRow.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr>`});
+  const displayDate=v=>formatDateLike(v,config.reportLayout.periodFormat||"");
+  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?reportSortHeader("serial","#"): ""}${rowHeaders}${m.colVals.map(c=>`<th>${esc(displayDate(c))}</th>`).join("")}</tr></thead><tbody>`;
+  displayRows.forEach((item,i)=>{const values=item.group.values;const matrixRow=m.matrix[item.index];h+=`<tr>${sn?`<td>${i+1}</td>`:""}${values.map((v,j)=>`<td><b>${esc(m.rowFs[j]?.id===config.reportLayout.periodField?displayDate(v):(v||"—"))}</b></td>`).join("")}${matrixRow.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr>`});
   h+=`<tr class="total-row">${sn?"<td></td>":""}<td colspan="${m.rowFs.length}">Grand total</td>${m.totals.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr></tbody></table></div>`;
   wrap.innerHTML=h;
 }
@@ -995,7 +1052,7 @@ function renderFieldRows(){
   wrap.querySelectorAll("[data-field]").forEach(row=>{
     const id=row.dataset.field,f=fieldById(id);
     row.querySelector("[data-edit]").onclick=()=>row.querySelector(".field-edit").classList.toggle("hidden");
-    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);config.reportLayout.filterField=config.reportLayout.filterFields[0]||null;if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;config.reportLayout.rowsFields=(config.reportLayout.rowsFields||[]).filter(x=>x!==id);if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
+    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);config.reportLayout.filterField=config.reportLayout.filterFields[0]||null;if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;config.reportLayout.rowsFields=(config.reportLayout.rowsFields||[]).filter(x=>x!==id);if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(config.reportLayout.periodField===id)config.reportLayout.periodField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
     row.querySelector("[data-savefield]").onclick=()=>saveFieldRow(row,f);
     row.querySelectorAll("[data-prop]").forEach(el=>el.addEventListener("change",()=>{row.querySelectorAll(".choice-only").forEach(x=>x.style.display=(row.querySelector('[data-prop="dataType"]').value==="choice"?"block":"none"))}));
     row.querySelectorAll("[data-prop]").forEach(el=>{if(el.dataset.prop==="dataType")el.dispatchEvent(new Event("change"))});
@@ -1245,7 +1302,27 @@ function renderReportSettingsTab(){
         </div>
         <div class="field-hint">Select multiple filter fields. Filter values are selected in the Report view.</div>
       </div>
-      <div class="field"><label>Period-style filter field</label><select id="rlPeriod" ${fetched?"":"disabled"}><option value="">Auto detect</option>${selectFieldOptions(rl.periodField)}</select></div>
+      <div class="field">
+        <label>Date / period field</label>
+        <select id="rlPeriod" ${fetched?"":"disabled"}><option value="">None</option>${selectFieldOptions(rl.periodField)}</select>
+        <div class="field-hint">When selected, GRID sorts this field chronologically even when the Sheet stores it as text (for example, May-26, Jun-26, Sep-26). It also enables the display format below.</div>
+      </div>
+      <div class="field">
+        <label>Date display format</label>
+        <select id="rlPeriodFormat" ${fetched?"":"disabled"}>
+          <option value="" ${!rl.periodFormat?"selected":""}>Keep source value</option>
+          <option value="MMM-yy" ${rl.periodFormat==="MMM-yy"?"selected":""}>MMM-yy</option>
+          <option value="MM-yy" ${rl.periodFormat==="MM-yy"?"selected":""}>MM-yy</option>
+          <option value="d-M-yy" ${rl.periodFormat==="d-M-yy"?"selected":""}>d-M-yy</option>
+          <option value="dd-MM-yy" ${rl.periodFormat==="dd-MM-yy"?"selected":""}>dd-MM-yy</option>
+          <option value="M-d-yy" ${rl.periodFormat==="M-d-yy"?"selected":""}>M-d-yy</option>
+          <option value="MM-dd-yy" ${rl.periodFormat==="MM-dd-yy"?"selected":""}>MM-dd-yy</option>
+          <option value="dd-MMM-yy" ${rl.periodFormat==="dd-MMM-yy"?"selected":""}>dd-MMM-yy</option>
+          <option value="MMM-yyyy" ${rl.periodFormat==="MMM-yyyy"?"selected":""}>MMM-yyyy</option>
+          <option value="MM-yyyy" ${rl.periodFormat==="MM-yyyy"?"selected":""}>MM-yyyy</option>
+        </select>
+        <div class="field-hint">The format changes how the selected date / period field is displayed in the report; sorting remains chronological.</div>
+      </div>
       <label class="check-item" style="margin-top:8px"><input id="rlSerial" type="checkbox" ${rl.showSerialNumber?"checked":""}> Show serial number column</label>
       <button class="btn primary" id="saveReportLayout" style="width:100%;margin-top:12px">Save report layout</button>
     </div>
@@ -1380,7 +1457,7 @@ async function exportSettings(){
 function importSettings(){
   const i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=async()=>{
     const f=i.files?.[0];if(!f)return;
-    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};c.reportLayout.rowsFields=Array.isArray(c.reportLayout.rowsFields)?c.reportLayout.rowsFields.filter(Boolean):[];if(!c.reportLayout.rowsFields.length&&c.reportLayout.rowsField)c.reportLayout.rowsFields=[c.reportLayout.rowsField];c.reportLayout.rowsField=c.reportLayout.rowsFields[0]||null;config=c;config.grid_version=GRID_VERSION;defaultDraftRows=null;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
+    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};c.reportLayout.periodFormat ??= "";c.reportLayout.rowsFields=Array.isArray(c.reportLayout.rowsFields)?c.reportLayout.rowsFields.filter(Boolean):[];if(!c.reportLayout.rowsFields.length&&c.reportLayout.rowsField)c.reportLayout.rowsFields=[c.reportLayout.rowsField];c.reportLayout.rowsField=c.reportLayout.rowsFields[0]||null;config=c;config.grid_version=GRID_VERSION;defaultDraftRows=null;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
     catch(e){toast("That file is not a valid GRID settings backup.")}
   };i.click()
 }
@@ -1441,6 +1518,7 @@ function bindSettingsTab(){
       rl.valueField=document.getElementById("rlValue").value||null;
       rl.aggregation=document.getElementById("rlAgg").value;
       rl.periodField=document.getElementById("rlPeriod").value||null;
+      rl.periodFormat=document.getElementById("rlPeriodFormat").value||"";
       rl.columnsValues=[...document.querySelectorAll("#columnTicks input:checked")].map(x=>x.value);
       rl.filterFields=[...document.querySelectorAll("#filterFields input:checked")].map(x=>x.value);
       rl.filterField=rl.filterFields[0]||null;
