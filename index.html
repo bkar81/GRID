@@ -740,12 +740,37 @@ async function loadHtml2Canvas(){
 async function reportImageBlob(includeFilters){
   const src=document.getElementById("reportCapture");if(!src)throw new Error("no-grid");
   const fn=await loadHtml2Canvas();
-  const box=document.createElement("div");box.style.cssText="position:fixed;left:-100000px;top:0;background:#fff;padding:18px;width:max-content;min-width:100%;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;color:#182335";
+
+  // Capture at the same CSS width as the report currently rendered on screen.
+  // Do not use max-content/min-width here: those values make the copied image
+  // expand to the table's intrinsic desktop width instead of the app viewport.
+  const rect=src.getBoundingClientRect();
+  const captureWidth=Math.max(1,Math.round(rect.width));
+
+  const box=document.createElement("div");
+  box.style.cssText=`position:fixed;left:-100000px;top:0;background:#fff;padding:18px;box-sizing:border-box;width:${captureWidth}px;max-width:${captureWidth}px;min-width:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif;color:#182335;overflow:hidden`;
   const title=document.createElement("div");title.innerHTML=`<div style="font-size:18px;font-weight:800;margin-bottom:3px">${esc(config.links.formTitle||"GRID")}</div><div style="font-size:11px;color:#66758a;margin-bottom:12px">GRID Report</div>`;
   box.appendChild(title);
   if(includeFilters){const fs=activeFilterLines();if(fs.length){const f=document.createElement("div");f.style.cssText="font-size:11px;margin-bottom:10px;color:#3f526b";f.textContent=fs.join("  •  ");box.appendChild(f)}}
-  box.appendChild(src.cloneNode(true));document.body.appendChild(box);
-  const canvas=await fn(box,{backgroundColor:"#fff",scale:2,useCORS:true});box.remove();
+
+  const reportClone=src.cloneNode(true);
+  reportClone.style.width="100%";
+  reportClone.style.maxWidth="100%";
+  reportClone.style.minWidth="0";
+  reportClone.style.boxSizing="border-box";
+  reportClone.style.overflow="hidden";
+  const table=reportClone.querySelector(".report-grid");
+  if(table){
+    table.style.width="100%";
+    table.style.minWidth="0";
+  }
+  box.appendChild(reportClone);
+  document.body.appendChild(box);
+
+  // Use the actual rendered width for html2canvas as well. Scale 2 improves
+  // image sharpness without changing the layout dimensions.
+  const canvas=await fn(box,{backgroundColor:"#fff",scale:2,width:captureWidth,height:box.scrollHeight,windowWidth:captureWidth,windowHeight:box.scrollHeight,scrollX:0,scrollY:0,useCORS:true});
+  box.remove();
   return new Promise(r=>canvas.toBlob(r,"image/png"));
 }
 async function copyReport(){
