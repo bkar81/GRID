@@ -214,6 +214,7 @@ const EMPTY_CONFIG = {
   defaultValueRows: [],
   reportLayout: {
     rowsField: null,
+    rowsFields: [],
     columnsField: null,
     columnsValues: [],
     valueField: null,
@@ -245,6 +246,9 @@ function loadConfig(){
     });
     c.reportLayout ||= clone(EMPTY_CONFIG.reportLayout);
     c.reportLayout.rowsField ??= null;
+    c.reportLayout.rowsFields=Array.isArray(c.reportLayout.rowsFields)?c.reportLayout.rowsFields.filter(Boolean):[];
+    if(!c.reportLayout.rowsFields.length && c.reportLayout.rowsField)c.reportLayout.rowsFields=[c.reportLayout.rowsField];
+    if(c.reportLayout.rowsFields.length)c.reportLayout.rowsField=c.reportLayout.rowsFields[0];
     c.reportLayout.columnsField ??= null;
     c.reportLayout.valueField ??= null;
     c.reportLayout.columnsValues=Array.isArray(c.reportLayout.columnsValues)?c.reportLayout.columnsValues:[];
@@ -627,16 +631,18 @@ function compareReportValues(a,b){
   if(Number.isFinite(na)&&Number.isFinite(nb))return na-nb;
   return String(a).localeCompare(String(b),undefined,{numeric:true,sensitivity:"base"});
 }
-function sortReportRowValues(rowVals,rows,rowF){
-  const indexed=rowVals.map((value,index)=>{
-    let firstIndex=rows.findIndex(r=>sheetValue(r,rowF)===value);
-    if(firstIndex<0)firstIndex=index;
-    return {value,index,firstIndex};
-  });
+function sortReportRowGroups(groups,rows,rowFs){
+  const indexed=groups.map((group,index)=>({group,index,firstIndex:group.firstIndex}));
   if(reportSortBy==="serial")indexed.sort((a,b)=>a.firstIndex-b.firstIndex);
-  else indexed.sort((a,b)=>compareReportValues(a.value,b.value));
+  else indexed.sort((a,b)=>{
+    for(let i=0;i<rowFs.length;i++){
+      const c=compareReportValues(a.group.values[i],b.group.values[i]);
+      if(c!==0)return c;
+    }
+    return a.firstIndex-b.firstIndex;
+  });
   if(reportSortDir==="desc")indexed.reverse();
-  return indexed.map(x=>x.value);
+  return indexed.map(x=>x.group);
 }
 
 function toggleReportColumnSort(type){
@@ -655,18 +661,25 @@ function reportSortHeader(type,label){
   return `<th class="report-sortable" data-report-sort="${type}" title="Click to sort ${reportSortDir==="asc"?"ascending":"descending"}">${esc(label)}<span class="report-sort-arrow">${arrow}</span></th>`;
 }
 function buildReportModel(){
-  const rl=config.reportLayout,rowF=fieldById(rl.rowsField),colF=fieldById(rl.columnsField),valF=fieldById(rl.valueField);
-  if(!rowF||!colF||!valF)return null;
+  const rl=config.reportLayout;
+  const rowFs=getReportRowFieldIds().map(fieldById).filter(Boolean);
+  const colF=fieldById(rl.columnsField),valF=fieldById(rl.valueField);
+  if(!rowFs.length||!colF||!valF)return null;
   const rows=applyFilters(reportRows);
-  let rowVals=rowsOrder(rowF,rows);
-  rowVals=sortReportRowValues(rowVals,rows,rowF);
+  const groupMap=new Map();
+  rows.forEach((r,index)=>{
+    const values=rowFs.map(f=>sheetValue(r,f));
+    const key=JSON.stringify(values);
+    if(!groupMap.has(key))groupMap.set(key,{values,firstIndex:index});
+  });
+  const rowGroups=sortReportRowGroups([...groupMap.values()],rows,rowFs);
   const colVals=currentColumnValues();
-  const matrix=rowVals.map(rv=>colVals.map(cv=>aggregate(rows.filter(r=>sheetValue(r,rowF)===rv&&sheetValue(r,colF)===cv),valF)));
+  const matrix=rowGroups.map(group=>colVals.map(cv=>aggregate(rows.filter(r=>rowFs.every((f,i)=>sheetValue(r,f)===group.values[i])&&sheetValue(r,colF)===cv),valF)));
   const totals=colVals.map(cv=>aggregate(rows.filter(r=>sheetValue(r,colF)===cv),valF));
-  return {rowF,colF,valF,rowVals,colVals,matrix,totals,rows};
+  return {rowFs,colF,valF,rowGroups,colVals,matrix,totals,rows};
 }
 function reportDisplayRows(m){
-  return m.rowVals.map((value,index)=>({value,index})).filter(x=>{
+  return m.rowGroups.map((group,index)=>({group,index})).filter(x=>{
     if(!reportHideAllBlankRows)return true;
     return m.matrix[x.index].some(v=>v!==null&&v!==undefined&&v!=="");
   });
@@ -678,9 +691,10 @@ function renderReportGrid(){
   if(!m.colVals.length){wrap.innerHTML=`<div class="card report-empty">No report columns are ticked. Configure them in Settings → Report.</div>`;return}
   const sn=config.reportLayout.showSerialNumber;
   const displayRows=reportDisplayRows(m);
-  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?reportSortHeader("serial","#"): ""}${reportSortHeader("row",m.rowF.label)}${m.colVals.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
-  displayRows.forEach((item,i)=>{const rv=item.value;const matrixRow=m.matrix[item.index];h+=`<tr>${sn?`<td>${i+1}</td>`:""}<td><b>${esc(rv)}</b></td>${matrixRow.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr>`});
-  h+=`<tr class="total-row">${sn?"<td></td>":""}<td>Grand total</td>${m.totals.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr></tbody></table></div>`;
+  const rowHeaders=m.rowFs.map((f,i)=>i===0?reportSortHeader("row",f.label):`<th>${esc(f.label)}</th>`).join("");
+  let h=`<div class="report-wrap" id="reportCapture"><table class="report-grid"><thead><tr>${sn?reportSortHeader("serial","#"): ""}${rowHeaders}${m.colVals.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  displayRows.forEach((item,i)=>{const values=item.group.values;const matrixRow=m.matrix[item.index];h+=`<tr>${sn?`<td>${i+1}</td>`:""}${values.map(v=>`<td><b>${esc(v||"—")}</b></td>`).join("")}${matrixRow.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr>`});
+  h+=`<tr class="total-row">${sn?"<td></td>":""}<td colspan="${m.rowFs.length}">Grand total</td>${m.totals.map(v=>`<td>${formatValue(v)}</td>`).join("")}</tr></tbody></table></div>`;
   wrap.innerHTML=h;
 }
 function renderReportFilters(){
@@ -981,7 +995,7 @@ function renderFieldRows(){
   wrap.querySelectorAll("[data-field]").forEach(row=>{
     const id=row.dataset.field,f=fieldById(id);
     row.querySelector("[data-edit]").onclick=()=>row.querySelector(".field-edit").classList.toggle("hidden");
-    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);config.reportLayout.filterField=config.reportLayout.filterFields[0]||null;if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
+    row.querySelector("[data-delete]").onclick=async()=>{if(await confirmDialog("Delete field",`Delete "${f.label}"?`,"Delete")){config.fields=config.fields.filter(x=>x.id!==id);config.reportLayout.filterFields=(config.reportLayout.filterFields||[]).filter(x=>x!==id);config.reportLayout.filterField=config.reportLayout.filterFields[0]||null;if(config.reportLayout.rowsField===id)config.reportLayout.rowsField=null;config.reportLayout.rowsFields=(config.reportLayout.rowsFields||[]).filter(x=>x!==id);if(config.reportLayout.columnsField===id)config.reportLayout.columnsField=null;if(config.reportLayout.valueField===id)config.reportLayout.valueField=null;if(Array.isArray(config.defaultValueRows))config.defaultValueRows=config.defaultValueRows.filter(r=>r.fieldId!==id);if(defaultDraftRows)defaultDraftRows=defaultDraftRows.filter(r=>r.fieldId!==id);saveConfig();renderSettingsTab();toast("Field deleted")}};
     row.querySelector("[data-savefield]").onclick=()=>saveFieldRow(row,f);
     row.querySelectorAll("[data-prop]").forEach(el=>el.addEventListener("change",()=>{row.querySelectorAll(".choice-only").forEach(x=>x.style.display=(row.querySelector('[data-prop="dataType"]').value==="choice"?"block":"none"))}));
     row.querySelectorAll("[data-prop]").forEach(el=>{if(el.dataset.prop==="dataType")el.dispatchEvent(new Event("change"))});
@@ -1165,6 +1179,16 @@ function assignDetected(i,id){const d=detectedPrefill[i],f=fieldById(id);if(!d||
 function selectFieldOptions(selected,filter=""){
   return sortFields().filter(f=>!filter||f.dataType===filter).map(f=>`<option value="${esc(f.id)}" ${f.id===selected?"selected":""}>${esc(f.label)}</option>`).join("");
 }
+function getReportRowFieldIds(){
+  const rl=config.reportLayout||{};
+  const ids=Array.isArray(rl.rowsFields)?rl.rowsFields.filter(Boolean):[];
+  if(ids.length)return ids;
+  return rl.rowsField?[rl.rowsField]:[];
+}
+function renderRowFieldChoices(selectedIds){
+  const selected=new Set(selectedIds||[]);
+  return sortFields().map(f=>`<label class="check-item"><input type="checkbox" class="report-row-field" value="${esc(f.id)}" ${selected.has(f.id)?"checked":""} ${reportHeaders.length?"":"disabled"}> ${esc(f.label||"Unnamed field")}</label>`).join("");
+}
 function renderColumnValueChoices(fieldId,selectedValues){
   const f=fieldById(fieldId);
   const vals=f?Array.from(new Set([...(f.options||[]),...uniqueSheetValues(f)])):[];
@@ -1190,7 +1214,7 @@ function renderReportSettingsTab(){
       ${esc(fetched?`Sheet fetched: ${reportHeaders.length} columns · ${reportRows.length.toLocaleString()} data rows${reportFetchedAt?` · ${reportFetchedAt.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}`:""}`:"Sheet data has not been fetched yet. Click Fetch Sheet data after connecting Google.")}
     </div>
     <div class="card">
-      <div class="field"><label>Rows</label><select id="rlRows" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.rowsField)}</select></div>
+      <div class="field"><label>Rows · select multiple</label><div class="check-grid" id="rowFields">${renderRowFieldChoices(getReportRowFieldIds())}</div><div class="field-hint">Select one or more row fields. They appear in the report from left to right after the serial number.</div></div>
       <div class="field"><label>Columns</label><select id="rlCols" ${fetched?"":"disabled"}><option value="">Choose</option>${selectFieldOptions(rl.columnsField)}</select></div>
       <div class="field">
         <label>Column values · select multiple</label>
@@ -1356,7 +1380,7 @@ async function exportSettings(){
 function importSettings(){
   const i=document.createElement("input");i.type="file";i.accept=".json,application/json";i.onchange=async()=>{
     const f=i.files?.[0];if(!f)return;
-    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};config=c;config.grid_version=GRID_VERSION;defaultDraftRows=null;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
+    try{const c=JSON.parse(await f.text());if(!c?.links||!Array.isArray(c.fields)||!c.reportLayout)throw new Error("invalid");c.fields.forEach(f=>{f.defaultValues ||= [];f.options ||= []});c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;c.reportLayout.measureAggregations ||= {};c.reportLayout.rowsFields=Array.isArray(c.reportLayout.rowsFields)?c.reportLayout.rowsFields.filter(Boolean):[];if(!c.reportLayout.rowsFields.length&&c.reportLayout.rowsField)c.reportLayout.rowsFields=[c.reportLayout.rowsField];c.reportLayout.rowsField=c.reportLayout.rowsFields[0]||null;config=c;config.grid_version=GRID_VERSION;defaultDraftRows=null;saveConfig();renderHome();renderSettings();renderReport();toast("Settings imported")}
     catch(e){toast("That file is not a valid GRID settings backup.")}
   };i.click()
 }
@@ -1411,7 +1435,8 @@ function bindSettingsTab(){
     };
     document.getElementById("saveReportLayout").onclick=()=>{
       const rl=config.reportLayout;
-      rl.rowsField=document.getElementById("rlRows").value||null;
+      rl.rowsFields=[...document.querySelectorAll("#rowFields input.report-row-field:checked")].map(x=>x.value);
+      rl.rowsField=rl.rowsFields[0]||null;
       rl.columnsField=document.getElementById("rlCols").value||null;
       rl.valueField=document.getElementById("rlValue").value||null;
       rl.aggregation=document.getElementById("rlAgg").value;
