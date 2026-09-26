@@ -1,15 +1,35 @@
 {
   "name": "GRID — Google-linked Report & Input Dashboard",
   "short_name": "GRID",
-  "start_url": "./index.html",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#F4F6FA",
-  "theme_color": "#2563EB",
-  "orientation": "any",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "background_color": "#ffffff",
+  "theme_color": "#2864e8",
+  "description": "Google-linked Report & Input Dashboard",
   "icons": [
-    { "src": "pwa-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "pwa-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "pwa-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "pwa-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
