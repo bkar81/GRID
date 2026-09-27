@@ -118,6 +118,8 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .report-sortable:hover{background:var(--hover-soft)}
 .report-sort-arrow{font-size:10px;margin-left:4px;opacity:.9}
  .theme-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:12px}.theme-title{font-size:12px;font-weight:900}.theme-subtitle{font-size:10px;color:var(--text-faint);margin-top:2px}.theme-switch{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;flex:0 0 auto}.theme-switch input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.theme-switch-track{width:42px;height:24px;border-radius:999px;background:var(--surface-3);border:1px solid var(--border);padding:2px;display:flex;align-items:center;transition:.18s}.theme-switch-knob{width:18px;height:18px;border-radius:50%;background:var(--text-faint);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}.theme-switch input:checked+.theme-switch-track{background:var(--accent);border-color:var(--accent);justify-content:flex-end}.theme-switch input:checked+.theme-switch-track .theme-switch-knob{background:var(--accent-ink)}.theme-switch-label{font-size:11px;font-weight:800;color:var(--text-dim);min-width:31px}.theme-switch input:focus-visible+.theme-switch-track{outline:2px solid var(--accent);outline-offset:2px}
+/* Master Data editor */
+.master-data-card{margin:0 0 12px}.master-data-list{margin-top:10px;display:flex;flex-direction:column;gap:7px}.master-row{display:grid;grid-template-columns:1.05fr 1.05fr .72fr .82fr 1.45fr auto;gap:6px;align-items:end;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:8px}.master-cell{min-width:0}.master-cell label{display:block;font-size:9px;font-weight:900;color:var(--text-faint);margin:0 0 3px}.master-cell input,.master-cell select{width:100%;min-width:0}.master-cell.compact select{padding-left:7px;padding-right:7px}.master-delete{margin-bottom:1px}.master-empty{padding:10px 0}.master-data-actions{margin-top:9px}@media(max-width:720px){.master-row{grid-template-columns:1fr 1fr;align-items:end}.master-cell.logic{grid-column:1/-1}.master-delete{justify-self:end}}
 /* Settings collapsible sections */
 .settings-collapsible{margin:0 0 12px;padding:0;overflow:hidden}.settings-collapsible>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;padding:10px 12px;font-size:11px;font-weight:900;color:var(--text);background:var(--surface-2);user-select:none}.settings-collapsible>summary::-webkit-details-marker{display:none}.settings-collapsible>summary::before{content:'▸';color:var(--accent);font-size:12px;flex:0 0 auto}.settings-collapsible[open]>summary::before{content:'▾'}.settings-collapsible>summary>span{flex:1;min-width:0}.settings-collapsible .collapsible-body{padding:10px 11px 11px;border-top:1px solid var(--border-soft)}.settings-collapsible .collapsible-body>.small{margin-bottom:8px}.settings-add-bottom{width:100%!important;margin:2px 0 8px;color:#2864E8} 
 .dark-theme .settings-add-bottom{background:transparent!important;border-color:#D9A441!important;color:#D9A441!important;}
@@ -238,6 +240,9 @@ const THEME_KEY = "grid.theme.v1";
 const LS_KEY = "grid.config.v2";
 const SYNC_KEY = "grid.sync.v1";
 const SYNC_BASE_KEY = "grid.sync.base.v1";
+const MASTER_DATA_KEY = "grid.masterdata.v1";
+const MASTER_DATA_RANGE = "Master Data!A1:E500";
+const MASTER_DATA_HEADERS = ["Field Name","Field Value","Active","Logic Based","Logic"];
 function getDriveSettingsFileName(){
   const title=(config?.links?.formTitle||"").trim();
   const safeTitle=title.replace(/[\\/:*?"<>|\u0000-\u001F]/g,"_").replace(/\s+/g," ").trim();
@@ -247,13 +252,14 @@ function escapeDriveQueryValue(value){return String(value).replace(/\\/g,"\\\\")
 
 /* Replace this with the OAuth client ID configured for the GRID deployment. */
 const GRID_GOOGLE_CLIENT_ID = "399109919198-bo3l7q2muggpoamlrbf3nvhki69o1l9g.apps.googleusercontent.com";
-const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets.readonly";
+const GOOGLE_SCOPES = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/spreadsheets";
 
 const EMPTY_CONFIG = {
   grid_version: GRID_VERSION,
   links: {
     formViewUrl: "",
     sheetUrl: "",
+    masterDataSheetUrl: "",
     formTitle: ""
   },
   fields: [],
@@ -283,6 +289,7 @@ function loadConfig(){
     c.links ||= {formViewUrl:"",sheetUrl:"",formTitle:""};
     c.links.formViewUrl ??= "";
     c.links.sheetUrl ??= "";
+    c.links.masterDataSheetUrl ??= "";
     c.links.formTitle ??= "";
     c.fields=Array.isArray(c.fields)?c.fields:[];
     c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;
@@ -312,6 +319,19 @@ function loadConfig(){
 
 let config=loadConfig();
 
+function loadMasterDataCache(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(MASTER_DATA_KEY)||"{}");
+    return {rows:Array.isArray(raw.rows)?raw.rows:[],fetchedAt:raw.fetchedAt||null};
+  }catch(e){return {rows:[],fetchedAt:null}}
+}
+const masterDataCache=loadMasterDataCache();
+let masterDataRows=masterDataCache.rows;
+let masterDataFetchedAt=masterDataCache.fetchedAt;
+
+function saveMasterDataCache(){
+  try{localStorage.setItem(MASTER_DATA_KEY,JSON.stringify({rows:masterDataRows,fetchedAt:masterDataFetchedAt}))}catch(e){}
+}
 function saveConfig(){
   config.grid_version=GRID_VERSION;
   localStorage.setItem(LS_KEY,JSON.stringify(config));
@@ -403,6 +423,107 @@ function formIdFromUrl(url){
     return m?m[1]:null;
   }catch(e){return null}
 }
+function truthyMasterFlag(v){
+  return /^(true|1|yes|y|active)$/i.test(String(v??"").trim());
+}
+function masterRowsForField(label){
+  const key=String(label??"").trim().toLowerCase();
+  return masterDataRows.filter(r=>String(r.fieldName??"").trim().toLowerCase()===key);
+}
+function masterContextFromForm(form){
+  const ctx={};
+  sortFields().forEach(f=>{
+    const el=form?.querySelector(`[name="${CSS.escape(f.id)}"]`);
+    if(el)ctx[String(f.label||"").trim().toLowerCase()]=el.value||"";
+  });
+  return ctx;
+}
+function masterValueFromContext(name,ctx){
+  return ctx[String(name??"").trim().toLowerCase()]??"";
+}
+function stripOuterParens(s){
+  s=String(s??"").trim();
+  while(s.startsWith("(")&&s.endsWith(")")){
+    let d=0,quoted=null,balanced=true;
+    for(let i=0;i<s.length;i++){
+      const ch=s[i];
+      if(quoted){if(ch===quoted&&s[i-1]!=="\\")quoted=null;continue}
+      if(ch==='"'||ch==="'"){quoted=ch;continue}
+      if(ch==='(')d++; else if(ch===')'){d--;if(d===0&&i!==s.length-1){balanced=false;break}}
+    }
+    if(!balanced||d!==0)break;
+    s=s.slice(1,-1).trim();
+  }
+  return s;
+}
+function splitLogicTop(expr,word){
+  const out=[];let start=0,depth=0,quote=null;const u=String(expr??"");const w=word.toUpperCase();
+  for(let i=0;i<u.length;i++){
+    const ch=u[i];
+    if(quote){if(ch===quote&&u[i-1]!=="\\")quote=null;continue}
+    if(ch==='"'||ch==="'"){quote=ch;continue}
+    if(ch==='('){depth++;continue} if(ch===')'){depth--;continue}
+    if(depth===0 && u.slice(i,i+w.length).toUpperCase()===w && (i===0||/\s/.test(u[i-1])) && (i+w.length===u.length||/\s/.test(u[i+w.length]))){
+      out.push(u.slice(start,i).trim());start=i+w.length;i+=w.length-1;
+    }
+  }
+  out.push(u.slice(start).trim());
+  return out.filter(Boolean);
+}
+function parseLogicLiteral(v){
+  const s=String(v??"").trim();
+  if((s.startsWith('"')&&s.endsWith('"'))||(s.startsWith("'")&&s.endsWith("'")))return s.slice(1,-1).replace(/\\(["'])/g,"$1");
+  if(/^true$/i.test(s))return true;if(/^false$/i.test(s))return false;
+  if(s!==""&&Number.isFinite(Number(s)))return Number(s);
+  return s;
+}
+function logicCompare(a,b,op){
+  const an=Number(a),bn=Number(b);let x=a,y=b;
+  if(String(a).trim()!==""&&String(b).trim()!==""&&Number.isFinite(an)&&Number.isFinite(bn)){x=an;y=bn}else{x=String(a??"").trim().toLowerCase();y=String(b??"").trim().toLowerCase()}
+  if(op==='='||op==='==')return x===y;if(op==='!='||op==='<>')return x!==y;
+  if(op==='>')return x>y;if(op==='<')return x<y;if(op==='>=')return x>=y;if(op==='<=')return x<=y;
+  return false;
+}
+function evalLogicExpression(expr,ctx){
+  let s=stripOuterParens(expr);if(!s)return true;
+  const ors=splitLogicTop(s,"OR");if(ors.length>1)return ors.some(x=>evalLogicExpression(x,ctx));
+  const ands=splitLogicTop(s,"AND");if(ands.length>1)return ands.every(x=>evalLogicExpression(x,ctx));
+  s=stripOuterParens(s);
+  if(/^true$/i.test(s))return true;if(/^false$/i.test(s))return false;
+  let m=s.match(/^(.+?)\s+NOT\s+IN\s*\((.*)\)$/i);
+  if(m){const field=masterValueFromContext(m[1],ctx);const vals=[...m[2].matchAll(/(?:"([^"]*)"|'([^']*)'|([^,]+))/g)].map(x=>parseLogicLiteral(x[1]??x[2]??x[3]));return !vals.some(v=>logicCompare(field,v,'='));}
+  m=s.match(/^(.+?)\s+IN\s*\((.*)\)$/i);
+  if(m){const field=masterValueFromContext(m[1],ctx);const vals=[...m[2].matchAll(/(?:"([^"]*)"|'([^']*)'|([^,]+))/g)].map(x=>parseLogicLiteral(x[1]??x[2]??x[3]));return vals.some(v=>logicCompare(field,v,'='));}
+  m=s.match(/^(.+?)\s+CONTAINS\s+(.+)$/i);
+  if(m){const field=String(masterValueFromContext(m[1],ctx)).toLowerCase();const val=String(parseLogicLiteral(m[2])).toLowerCase();return field.includes(val);}
+  m=s.match(/^(.+?)\s*(==|!=|<>|>=|<=|=|>|<)\s*(.+)$/);
+  if(m)return logicCompare(masterValueFromContext(m[1],ctx),parseLogicLiteral(m[3]),m[2]);
+  return false;
+}
+function masterRowApplies(row,ctx){
+  if(!truthyMasterFlag(row.active))return false;
+  if(!truthyMasterFlag(row.logicBased))return true;
+  return evalLogicExpression(row.logic,ctx);
+}
+function masterOptionsForField(f,form){
+  const rows=masterRowsForField(f.label);if(!rows.length)return [];
+  const ctx=masterContextFromForm(form);
+  const out=[];const seen=new Set();
+  rows.forEach(r=>{if(masterRowApplies(r,ctx)){const v=String(r.fieldValue??"").trim();if(v&&!seen.has(v)){seen.add(v);out.push(v)}}});
+  return out;
+}
+function hasMasterRowsForField(f){return masterRowsForField(f.label).length>0;}
+function refreshHomeMasterOptions(form){
+  if(!form||!masterDataRows.length)return;
+  sortFields().forEach(f=>{
+    if(!hasMasterRowsForField(f))return;
+    const el=form.querySelector(`select[name="${CSS.escape(f.id)}"]`);if(!el)return;
+    const old=el.value;const opts=masterOptionsForField(f,form);
+    el.innerHTML=`<option value="">Choose ▾</option>${opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}`;
+    if(opts.includes(old))el.value=old;
+    else if(old){el.value="";homeDraft[f.id]="";}
+  });
+}
 function submissionUrl(){
   const id=formIdFromUrl(config.links.formViewUrl);
   return id ? `https://docs.google.com/forms/d/e/${id}/formResponse` : null;
@@ -431,12 +552,17 @@ function renderHome(resetDraft=false){
     }
   });
   bindHomeDraft();
+  refreshHomeMasterOptions(form);
+  form.addEventListener("change",()=>{refreshHomeMasterOptions(form);captureHomeDraft();});
 }
 function renderHomeField(f){
   const req=f.required?" <span class='required'>*</span>":"";
   const defaults=Array.isArray(f.defaultValues)?f.defaultValues.filter(v=>String(v).trim()!==""):[];
   let control="";
-  if(defaults.length){
+  if(hasMasterRowsForField(f)){
+    const opts=masterOptionsForField(f,document.getElementById("homeForm"));
+    control=`<select name="${esc(f.id)}"><option value="">Choose ▾</option>${opts.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
+  }else if(defaults.length){
     control=`<select name="${esc(f.id)}"><option value="">Choose ▾</option>${defaults.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("")}</select>`;
   }else if(f.dataType==="choice"){
     const opts=(f.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join("");
@@ -1066,6 +1192,7 @@ function renderLinksTab(){
     <div class="card">
       <div class="field"><label>Google Form link</label><input id="cfgFormUrl" value="${esc(config.links.formViewUrl)}" placeholder="https://docs.google.com/forms/d/e/.../viewform"><div class="field-hint">Use the public <b>viewform</b> URL.</div></div>
       <div class="field"><label>Google Sheet link</label><input id="cfgSheetUrl" value="${esc(config.links.sheetUrl)}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"></div>
+      <div class="field"><label>Master Data Google Sheet link</label><input id="cfgMasterDataSheetUrl" value="${esc(config.links.masterDataSheetUrl||"")}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"><div class="field-hint">GRID reads/writes <b>Master Data!A1:E500</b> from this Google Sheet.</div></div>
       <div class="field"><label>Form title</label><input id="cfgFormTitle" value="${esc(config.links.formTitle)}" placeholder="Enter form title"></div>
       <button class="btn primary" id="saveLinks" style="width:100%;margin-top:5px">Save links</button>
     </div></div>`;
@@ -1091,10 +1218,22 @@ function renderFieldsTab(){
         <button class="btn" id="saveFields" style="width:100%;margin-top:2px">Save form fields</button>
       </div>
     </details>
+    <div class="card master-data-card">
+      <div class="settings-section-head">
+        <div><div class="section-title" style="margin:0">Master Data</div><div class="small">Source: <b>Master Data!A1:E500</b>. Field names must match the Form Fields names. Active rows drive the Home dropdowns; Logic Based rows are evaluated against current Home selections.</div></div>
+        <button class="btn primary compact-action" id="fetchMasterData" type="button">↓ Fetch values</button>
+      </div>
+      <div id="masterDataStatus" class="small" style="margin-top:8px"></div>
+      <div id="masterDataList" class="master-data-list"></div>
+      <div class="master-data-actions">
+        <button class="btn ghost settings-add-bottom" id="addMasterRow" type="button">＋ Add master value</button>
+        <button class="btn" id="saveMasterData" type="button" style="width:100%;margin-top:2px">Save Master Data</button>
+      </div>
+    </div>
     <details class="instructions settings-collapsible" id="defaultValuesSection" ${defaultValuesSectionOpen?'open':''}>
       <summary><span>Default values shown on Home</span><button class="btn primary compact-action" id="addDefaultValue" type="button">＋ Add default value</button></summary>
       <div class="collapsible-body">
-        <div class="small">Configure the dropdown values that appear against each field on Home. Nothing on Home is hardcoded.</div>
+        <div class="small">Legacy/manual fallback values. When Master Data contains rows for a field, Master Data takes precedence for the Home dropdown.</div>
         <div id="defaultValueList"></div>
         <button class="btn ghost settings-add-bottom" id="addDefaultValueBottom" type="button">＋ Add default value</button>
         <button class="btn" id="saveDefaults" style="width:100%;margin-top:2px">Save default values</button>
@@ -1102,6 +1241,105 @@ function renderFieldsTab(){
     </details>
   </div>`;
 }
+let masterDraftRows=null;
+function normalizeMasterRow(r){
+  return {fieldName:String(r?.fieldName??r?.[0]??""),fieldValue:String(r?.fieldValue??r?.[1]??""),active:String(r?.active??r?.[2]??"TRUE"),logicBased:String(r?.logicBased??r?.[3]??"FALSE"),logic:String(r?.logic??r?.[4]??"")};
+}
+function ensureMasterDraftRows(){
+  if(masterDraftRows)return masterDraftRows;
+  masterDraftRows=masterDataRows.map(normalizeMasterRow);
+  return masterDraftRows;
+}
+function masterDataSpreadsheetId(){
+  return sheetIdFromUrl(config.links.masterDataSheetUrl);
+}
+function masterRowsToValues(rows){
+  return [MASTER_DATA_HEADERS,...rows.map(r=>[r.fieldName,r.fieldValue,truthyMasterFlag(r.active)?"TRUE":"FALSE",truthyMasterFlag(r.logicBased)?"TRUE":"FALSE",r.logic])];
+}
+function masterDataStatusText(){
+  if(!config.links.masterDataSheetUrl)return "Add the Master Data Google Sheet link in Settings → Links.";
+  if(!masterDataRows.length)return "No Master Data has been fetched yet.";
+  const when=masterDataFetchedAt?new Date(masterDataFetchedAt).toLocaleString():"unknown time";
+  return `${masterDataRows.length} master-data row${masterDataRows.length===1?"":"s"} loaded · ${when}`;
+}
+function renderMasterData(){
+  const wrap=document.getElementById("masterDataList");const status=document.getElementById("masterDataStatus");if(!wrap)return;
+  if(status)status.textContent=masterDataStatusText();
+  const rows=ensureMasterDraftRows();
+  if(!rows.length){wrap.innerHTML=`<div class="small master-empty">No Master Data rows loaded. Click <b>Fetch values</b>, or add a new row.</div>`;return;}
+  wrap.innerHTML=rows.map((r,i)=>`<div class="master-row" data-master-row data-index="${i}">
+    <div class="master-cell"><label>Field Name</label><input data-master-prop="fieldName" value="${esc(r.fieldName)}" placeholder="Month"></div>
+    <div class="master-cell"><label>Field Value</label><input data-master-prop="fieldValue" value="${esc(r.fieldValue)}" placeholder="Sep-26"></div>
+    <div class="master-cell compact"><label>Active</label><select data-master-prop="active"><option value="TRUE" ${truthyMasterFlag(r.active)?"selected":""}>TRUE</option><option value="FALSE" ${truthyMasterFlag(r.active)?"":"selected"}>FALSE</option></select></div>
+    <div class="master-cell compact"><label>Logic Based</label><select data-master-prop="logicBased"><option value="TRUE" ${truthyMasterFlag(r.logicBased)?"selected":""}>TRUE</option><option value="FALSE" ${truthyMasterFlag(r.logicBased)?"":"selected"}>FALSE</option></select></div>
+    <div class="master-cell logic"><label>Logic</label><input data-master-prop="logic" value="${esc(r.logic)}" placeholder='Month IN ("Sep-26", "Oct-26")'></div>
+    <button class="icon-btn danger-icon master-delete" data-master-delete type="button">×</button>
+  </div>`).join("");
+  wrap.querySelectorAll("[data-master-row]").forEach(row=>{
+    row.querySelectorAll("[data-master-prop]").forEach(el=>el.addEventListener("input",()=>{
+      const i=+row.dataset.index;if(masterDraftRows?.[i])masterDraftRows[i][el.dataset.masterProp]=el.value;
+    }));
+    row.querySelectorAll("[data-master-prop]").forEach(el=>el.addEventListener("change",()=>{
+      const i=+row.dataset.index;if(masterDraftRows?.[i])masterDraftRows[i][el.dataset.masterProp]=el.value;
+    }));
+    row.querySelector("[data-master-delete]")?.addEventListener("click",async()=>{
+      if(await confirmDialog("Delete master value","Delete this Master Data row?","Delete")){masterDraftRows.splice(+row.dataset.index,1);renderMasterData();}
+    });
+  });
+}
+function addMasterRow(){
+  masterDraftRows=ensureMasterDraftRows();
+  masterDraftRows.push({fieldName:sortFields()[0]?.label||"",fieldValue:"",active:"TRUE",logicBased:"FALSE",logic:""});
+  renderMasterData();
+  requestAnimationFrame(()=>document.querySelector("[data-master-row]:last-child")?.scrollIntoView({behavior:"smooth",block:"center"}));
+}
+async function fetchMasterData(){
+  if(!config.links.masterDataSheetUrl){toast("Configure the Master Data Google Sheet link first.");settingsTab="links";renderSettingsTab();return;}
+  const sid=masterDataSpreadsheetId();if(!sid){toast("Master Data Google Sheet link is invalid.");return;}
+  const btn=document.getElementById("fetchMasterData");if(btn){btn.disabled=true;btn.textContent="Fetching…";}
+  try{
+    if(!await privateAccess())return;
+    const range=encodeURIComponent(MASTER_DATA_RANGE);
+    let res;
+    try{res=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`)}
+    catch(e){if(e.status===401){await privateAccess(true);res=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`)}else throw e;}
+    const data=await res.json();const vals=data.values||[];
+    const header=(vals[0]||[]).map(x=>String(x??""));
+    const idx=MASTER_DATA_HEADERS.map(h=>header.findIndex(x=>x.trim().toLowerCase()===h.toLowerCase()));
+    if(idx.some(x=>x<0))throw new Error("Master Data must have headers: Field Name, Field Value, Active, Logic Based, Logic");
+    masterDataRows=vals.slice(1,500).map(row=>normalizeMasterRow({fieldName:row[idx[0]]??"",fieldValue:row[idx[1]]??"",active:row[idx[2]]??"TRUE",logicBased:row[idx[3]]??"FALSE",logic:row[idx[4]]??""})).filter(r=>[r.fieldName,r.fieldValue,r.active,r.logicBased,r.logic].some(v=>String(v).trim()!==""));
+    masterDataFetchedAt=new Date().toISOString();masterDraftRows=null;saveMasterDataCache();
+    renderMasterData();renderHome(false);toast(`Fetched ${masterDataRows.length} Master Data row${masterDataRows.length===1?"":"s"}`);
+  }catch(e){
+    if(e.status===403)modal("Master Data is read-only","Your Google account can read this Master Data sheet, but it does not have write permission. You can view and use the values, but Save Master Data requires Editor access to the sheet.",[ {label:"OK",primary:true,onClick:()=>{}} ]);
+    else if(e.message?.includes("headers:"))modal("Invalid Master Data",`<p>${esc(e.message)}</p>`,[ {label:"OK",primary:true,onClick:()=>{}} ]);
+    else toast(`Master Data fetch failed: ${e.message||"Unknown error"}`);
+  }finally{if(btn){btn.disabled=false;btn.textContent="↓ Fetch values";}}
+}
+async function saveMasterData(){
+  if(!config.links.masterDataSheetUrl){toast("Configure the Master Data Google Sheet link first.");return;}
+  const sid=masterDataSpreadsheetId();if(!sid){toast("Master Data Google Sheet link is invalid.");return;}
+  const rows=ensureMasterDraftRows().map(normalizeMasterRow).filter(r=>r.fieldName.trim()||r.fieldValue.trim()||r.logic.trim()).slice(0,499);
+  const btn=document.getElementById("saveMasterData");if(btn){btn.disabled=true;btn.textContent="Saving…";}
+  try{
+    if(!await privateAccess())return;
+    const base=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}`;
+    const clearRange=encodeURIComponent("Master Data!A2:E500");
+    try{await googleRequest(`${base}/values/${clearRange}:clear`,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});}
+    catch(e){if(e.status===401){await privateAccess(true);await googleRequest(`${base}/values/${clearRange}:clear`,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});}else throw e;}
+    if(rows.length){
+      const endRow=Math.min(500,rows.length+1);const writeRange=encodeURIComponent(`Master Data!A2:E${endRow}`);
+      const body={range:`Master Data!A2:E${endRow}`,majorDimension:"ROWS",values:rows.slice(0,499).map(r=>[r.fieldName,r.fieldValue,truthyMasterFlag(r.active)?"TRUE":"FALSE",truthyMasterFlag(r.logicBased)?"TRUE":"FALSE",r.logic])};
+      try{await googleRequest(`${base}/values/${writeRange}?valueInputOption=USER_ENTERED`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});}
+      catch(e){if(e.status===401){await privateAccess(true);await googleRequest(`${base}/values/${writeRange}?valueInputOption=USER_ENTERED`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});}else throw e;}
+    }
+    masterDataRows=rows;masterDataFetchedAt=new Date().toISOString();masterDraftRows=null;saveMasterDataCache();renderMasterData();renderHome(false);toast("Master Data saved ✓");
+  }catch(e){
+    if(e.status===403)modal("No write permission","This Google account has read access to the Master Data sheet but does not have permission to modify it. Ask the sheet owner to grant Editor access. No Master Data changes were saved.",[ {label:"OK",primary:true,onClick:()=>{}} ]);
+    else toast(`Master Data save failed: ${e.message||"Unknown error"}`);
+  }finally{if(btn){btn.disabled=false;btn.textContent="Save Master Data";}}
+}
+
 function renderFieldRows(){
   const wrap=document.getElementById("fieldList");if(!wrap)return;
   wrap.innerHTML=sortFields().map((f,i)=>`
@@ -1569,6 +1807,7 @@ function bindSettingsTab(){
     document.getElementById("saveLinks").onclick=()=>{
       config.links.formViewUrl=document.getElementById("cfgFormUrl").value.trim();
       config.links.sheetUrl=document.getElementById("cfgSheetUrl").value.trim();
+      config.links.masterDataSheetUrl=document.getElementById("cfgMasterDataSheetUrl")?.value.trim()||"";
       config.links.formTitle=document.getElementById("cfgFormTitle").value.trim();
       saveConfig();renderHome(true);renderReport();document.getElementById("aboutFormTitle").textContent=config.links.formTitle;toast("Links saved")
     };
@@ -1587,7 +1826,10 @@ function bindSettingsTab(){
     document.getElementById("addDefaultValue").onclick=addDefaultAction;
     document.getElementById("addDefaultValueBottom").onclick=addDefaultAction;
     document.getElementById("saveDefaults").onclick=saveDefaultValuesFromUI;
-    renderFieldRows();renderDefaultValues()
+    document.getElementById("fetchMasterData").onclick=fetchMasterData;
+    document.getElementById("addMasterRow").onclick=addMasterRow;
+    document.getElementById("saveMasterData").onclick=saveMasterData;
+    renderFieldRows();renderDefaultValues();renderMasterData()
   }
   if(settingsTab==="report"){
     document.getElementById("fetchReportSettings").onclick=()=>fetchReportData("fetchReportSettings");
