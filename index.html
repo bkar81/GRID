@@ -346,6 +346,16 @@ function saveMasterDataCache(){
 function saveConfig(){
   config.grid_version=GRID_VERSION;
   localStorage.setItem(LS_KEY,JSON.stringify(config));
+  // Record a local configuration change so Drive Sync can distinguish an
+  // intentional local edit from an unchanged/new device configuration.
+  try{
+    const raw=localStorage.getItem(SYNC_KEY);
+    if(raw){
+      const s=JSON.parse(raw)||{};
+      s.localConfigChangedAt=new Date().toISOString();
+      localStorage.setItem(SYNC_KEY,JSON.stringify(s));
+    }
+  }catch(e){}
 }
 function sortFields(){ return [...config.fields].sort((a,b)=>(a.order||0)-(b.order||0)); }
 function renumberFields(){ sortFields().forEach((f,i)=>f.order=i+1); saveConfig(); }
@@ -651,7 +661,7 @@ let gisPromise=null, accessToken=null, tokenExpiresAt=0, accountEmail=null;
 let syncConfig=loadSyncConfig();
 
 function loadSyncConfig(){
-  const d={driveFileId:null,lastSyncedAt:null,wasConnected:false,accountEmail:null};
+  const d={driveFileId:null,lastSyncedAt:null,localConfigChangedAt:null,wasConnected:false,accountEmail:null};
   try{return {...d,...JSON.parse(localStorage.getItem(SYNC_KEY)||"{}")}}catch(e){return d}
 }
 function saveSyncConfig(){localStorage.setItem(SYNC_KEY,JSON.stringify(syncConfig))}
@@ -1779,26 +1789,37 @@ async function driveSyncNow(){
   const local=canonicalConfig();
   const base=fileId?loadBase(fileId):null;
   const sameFileAsLastSync=syncConfig.driveFileId===fileId && syncConfig.driveFileName===driveFileName;
+  const localChangedSinceSync=!!(syncConfig.localConfigChangedAt && syncConfig.lastSyncedAt && new Date(syncConfig.localConfigChangedAt).getTime()>new Date(syncConfig.lastSyncedAt).getTime());
   let finalConfig=local,upload=!remote;
 
   if(remote){
     const rh=configHash(remote),lh=configHash(local),bh=base?configHash(base):null;
     if(lh===rh){
       upload=false;
-    }else if(!sameFileAsLastSync || !base){
-      // Changing the Form Title selects a different configuration. If that file
-      // already exists, restore it rather than overwriting it with the previous view.
-      finalConfig=remote;upload=false;
-    }else if(lh===bh && rh!==bh){
-      finalConfig=remote;upload=false;await toastAsync("Drive has newer settings. Restoring them…");
-    }else if(lh!==bh && rh===bh){
+    }else if(sameFileAsLastSync && base){
+      // Normal three-way sync for a previously synchronized Drive file.
+																					  
+									  
+      if(lh===bh && rh!==bh){
+        finalConfig=remote;upload=false;await toastAsync("Drive has newer settings. Restoring them…");
+      }else if(lh!==bh && rh===bh){
+        upload=true;
+      }else if(lh!==bh && rh!==bh){
+        const choice=await choiceDialog("Both sides changed","This device and Google Drive both changed since the last sync. Choose how to continue.",[
+          {label:"Cancel",value:"cancel"},{label:"Keep this device",value:"local"},{label:"Merge",value:"merge",primary:true}]);
+        if(choice==="cancel")return;
+        if(choice==="merge")finalConfig=mergeConfig(local,remote,base);
+        upload=true;
+      }
+    }else if(localChangedSinceSync){
+      // The sync metadata/base can be missing after an app update or local-data
+      // reset. If this device was explicitly changed after its last sync, do not
+      // silently overwrite that change with Drive's older copy.
       upload=true;
-    }else if(lh!==bh && rh!==bh){
-      const choice=await choiceDialog("Both sides changed","This device and Google Drive both changed since the last sync. Choose how to continue.",[
-        {label:"Cancel",value:"cancel"},{label:"Keep this device",value:"local"},{label:"Merge",value:"merge",primary:true}]);
-      if(choice==="cancel")return;
-      if(choice==="merge")finalConfig=mergeConfig(local,remote,base);
-      upload=true;
+    }else{
+      // No evidence of a newer local edit: treat an existing Drive file as the
+      // source of truth for a new/uninitialized device.
+      finalConfig=remote;upload=false;await toastAsync("Drive settings restored to this device.");
     }
   }
 
@@ -1810,6 +1831,8 @@ async function driveSyncNow(){
   syncConfig.driveFileId=fileId;
   syncConfig.driveFileName=driveFileName;
   syncConfig.lastSyncedAt=new Date().toISOString();
+  // The configuration is now synchronized, so clear the local-dirty marker.
+  syncConfig.localConfigChangedAt=syncConfig.lastSyncedAt;
   syncConfig.wasConnected=true;
   saveSyncConfig();
   renderHome();renderReport();renderSettings();
