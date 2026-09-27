@@ -42,7 +42,7 @@ input[type="checkbox"],input[type="radio"]{accent-color:var(--accent)}
 .dark-theme .report-grid thead th{color:#fff}
 .dark-theme .report-sortable:hover{background:#2b3038}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html,body{height:100%;overflow:hidden}
 body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -50,13 +50,13 @@ input,select,textarea{width:100%;border:1px solid var(--border);background:var(-
 input:focus,select:focus,textarea:focus{outline:2px solid rgba(40,100,232,.18);border-color:var(--accent)}
 textarea{min-height:86px;resize:vertical}
 .hidden{display:none!important}.mono{font-family:var(--mono)}
-#app{width:100%;max-width:520px;min-height:100vh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--surface)}
+#app{width:100%;max-width:520px;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--surface);overflow:hidden}
 .topbar{position:sticky;top:0;z-index:20;background:var(--topbar-bg);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 16px}#app.about-view .topbar{display:none}
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-mark{width:32px;height:32px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;flex:0 0 auto}.brand-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .brand-copy{min-width:0}.brand-title{font-size:16px;font-weight:800;line-height:1.15}.brand-sub{font-size:10px;color:var(--text-faint);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-actions{display:flex;gap:6px;align-items:center}.top-actions button{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:6px 8px;color:var(--text-dim);font-size:13px}
-main{flex:1;overflow-y:auto;padding-bottom:76px}
+main{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:76px;-webkit-overflow-scrolling:touch}
 .view{display:none;padding:14px 16px 22px}.view.active{display:block}
 .page-title{font-size:18px;font-weight:800;margin:2px 0 4px}.page-subtitle{font-size:11px;color:var(--text-faint);margin-bottom:14px}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
@@ -1197,17 +1197,22 @@ function renderSettingsTab(){
   bindSettingsTab();
 }
 function renderLinksTab(){
-  return `<div class="settings-section"><div class="section-title">Links</div>
-    <div class="card">
-      <div class="field"><label>Google Form link</label><input id="cfgFormUrl" value="${esc(config.links.formViewUrl)}" placeholder="https://docs.google.com/forms/d/e/.../viewform"><div class="field-hint">Use the public <b>viewform</b> URL.</div></div>
-      <div class="field"><label>Google Sheet link</label><input id="cfgSheetUrl" value="${esc(config.links.sheetUrl)}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"></div>
-      <div class="field"><label>Master Data Google Sheet link</label><input id="cfgMasterDataSheetUrl" value="${esc(config.links.masterDataSheetUrl||"")}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"><div class="field-hint">GRID reads and writes the configured sheet/range below. All users can read; saving requires Editor access.</div></div>
-      <div class="field"><label>Master Data sheet name</label><input id="cfgMasterDataSheetName" value="${esc(config.links.masterDataSheetName||"")}" placeholder="e.g. Master Data"><div class="field-hint">Enter the exact Google Sheets tab name. Spaces are allowed.</div></div>
-      <div class="field"><label>Master Data range</label><input id="cfgMasterDataRange" value="${esc(config.links.masterDataRange||"")}" placeholder="e.g. A1:E500"><div class="field-hint">Enter only the cell range. Suggested: <b>A1:E500</b> for the five Master Data columns.</div></div>
-      <div class="field"><label>Form title</label><input id="cfgFormTitle" value="${esc(config.links.formTitle)}" placeholder="Enter form title"></div>
-      <button class="btn primary" id="saveLinks" style="width:100%;margin-top:5px">Save links</button>
-    </div></div>`;
+  return `<div class="settings-section">
+    <details class="instructions settings-collapsible" id="linksSection" ${linksSectionOpen?'open':''}>
+      <summary><span>Links</span></summary>
+      <div class="collapsible-body">
+        <div class="field"><label>Google Form link</label><input id="cfgFormUrl" value="${esc(config.links.formViewUrl)}" placeholder="https://docs.google.com/forms/d/e/.../viewform"><div class="field-hint">Use the public <b>viewform</b> URL.</div></div>
+        <div class="field"><label>Google Sheet link</label><input id="cfgSheetUrl" value="${esc(config.links.sheetUrl)}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"></div>
+        <div class="field"><label>Master Data Google Sheet link</label><input id="cfgMasterDataSheetUrl" value="${esc(config.links.masterDataSheetUrl||"")}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"><div class="field-hint">GRID reads and writes the configured sheet/range below. All users can read; saving requires Editor access.</div></div>
+        <div class="field"><label>Master Data sheet name</label><input id="cfgMasterDataSheetName" value="${esc(config.links.masterDataSheetName||"")}" placeholder="e.g. Master Data"><div class="field-hint">Enter the exact Google Sheets tab name. Spaces are allowed.</div></div>
+        <div class="field"><label>Master Data range</label><input id="cfgMasterDataRange" value="${esc(config.links.masterDataRange||"")}" placeholder="e.g. A1:E500"><div class="field-hint">Enter only the cell range. Suggested: <b>A1:E500</b> for the five Master Data columns.</div></div>
+        <div class="field"><label>Form title</label><input id="cfgFormTitle" value="${esc(config.links.formTitle)}" placeholder="Enter form title"></div>
+        <button class="btn primary" id="saveLinks" style="width:100%;margin-top:5px">Save links</button>
+      </div>
+    </details>
+  </div>`;
 }
+let linksSectionOpen=true;
 let formFieldsSectionOpen=false;
 let masterDataSectionOpen=false;
 let masterDataPage=1;
@@ -1838,6 +1843,8 @@ function renderSyncTab(){
 /* ===================== SETTINGS BINDINGS ===================== */
 function bindSettingsTab(){
   if(settingsTab==="links"){
+    const linksDetails=document.getElementById("linksSection");
+    linksDetails?.addEventListener("toggle",()=>{linksSectionOpen=linksDetails.open});
     document.getElementById("saveLinks").onclick=()=>{
       config.links.formViewUrl=document.getElementById("cfgFormUrl").value.trim();
       config.links.sheetUrl=document.getElementById("cfgSheetUrl").value.trim();
