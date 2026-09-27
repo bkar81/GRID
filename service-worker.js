@@ -1,54 +1,84 @@
-const CACHE = "grid-v1.0.0";
-const APP_SHELL = ["./", "./index.html"];
+// GRID service worker v1.1.0
+// Caches the GRID app shell for offline use and supports the in-app
+// update prompt. Google Drive/Sheets/Forms calls are never cached.
 
-self.addEventListener("install", event => {
+const CACHE_NAME = "grid-cache-v1.1.0";
+
+const ASSETS = [
+  "./",
+  "./index.html"
+];
+
+// Install the new service worker and cache the latest GRID app shell.
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE)
-      .then(cache => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener("activate", event => {
+// Remove old GRID caches and take control of open pages.
+self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
+      )
       .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("message", event => {
-  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
+// Allow the GRID app's Update button to activate the waiting worker.
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
-self.addEventListener("fetch", event => {
-  const req = event.request;
-  if (req.method !== "GET") return;
-  const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
 
-  if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put("./index.html", copy));
-          return res;
-        })
-        .catch(() => caches.match("./index.html"))
-    );
+  // Never intercept Google authentication/API/Forms/Sheets/Drive traffic.
+  if (
+    url.hostname.endsWith("googleapis.com") ||
+    url.hostname.endsWith("google.com") ||
+    url.hostname.endsWith("googleusercontent.com")
+  ) {
+    return;
+  }
+
+  // Only handle GET requests.
+  if (event.request.method !== "GET") {
     return;
   }
 
   event.respondWith(
-    caches.match(req).then(cached =>
-      cached || fetch(req).then(res => {
-        if (res.ok) {
-          const copy = res.clone();
-          caches.open(CACHE).then(cache => cache.put(req, copy));
-        }
-        return res;
-      })
-    )
+    caches.match(event.request).then((cached) => {
+      // Prefer the network for the GRID app shell so published updates are
+      // discovered promptly. If offline, fall back to the cached version.
+      const isAppShell =
+        url.pathname.endsWith("/index.html") ||
+        url.pathname.endsWith("/") ||
+        url.pathname.endsWith("/grid");
+
+      const networkFetch = fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => cached);
+
+      return isAppShell ? networkFetch : (cached || networkFetch);
+    })
   );
 });
