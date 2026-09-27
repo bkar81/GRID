@@ -119,9 +119,12 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .report-sort-arrow{font-size:10px;margin-left:4px;opacity:.9}
  .theme-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;margin-bottom:12px}.theme-title{font-size:12px;font-weight:900}.theme-subtitle{font-size:10px;color:var(--text-faint);margin-top:2px}.theme-switch{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;flex:0 0 auto}.theme-switch input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}.theme-switch-track{width:42px;height:24px;border-radius:999px;background:var(--surface-3);border:1px solid var(--border);padding:2px;display:flex;align-items:center;transition:.18s}.theme-switch-knob{width:18px;height:18px;border-radius:50%;background:var(--text-faint);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:.18s}.theme-switch input:checked+.theme-switch-track{background:var(--accent);border-color:var(--accent);justify-content:flex-end}.theme-switch input:checked+.theme-switch-track .theme-switch-knob{background:var(--accent-ink)}.theme-switch-label{font-size:11px;font-weight:800;color:var(--text-dim);min-width:31px}.theme-switch input:focus-visible+.theme-switch-track{outline:2px solid var(--accent);outline-offset:2px}
 /* Master Data editor */
-.master-data-card{margin:0 0 12px}.master-data-list{margin-top:10px;display:flex;flex-direction:column;gap:7px}.master-row{display:grid;grid-template-columns:1.05fr 1.05fr .72fr .82fr 1.45fr auto;gap:6px;align-items:end;border:1px solid var(--border);background:var(--surface-2);border-radius:10px;padding:8px}.master-cell{min-width:0}.master-cell label{display:block;font-size:9px;font-weight:900;color:var(--text-faint);margin:0 0 3px}.master-cell input,.master-cell select{width:100%;min-width:0}.master-cell.compact select{padding-left:7px;padding-right:7px}.master-delete{margin-bottom:1px}.master-empty{padding:10px 0}.master-data-actions{margin-top:9px}@media(max-width:720px){.master-row{grid-template-columns:1fr 1fr;align-items:end}.master-cell.logic{grid-column:1/-1}.master-delete{justify-self:end}}
+.master-data-card{margin:0 0 12px}.master-data-source{font-size:10px;color:var(--text-faint);line-height:1.45;margin-bottom:8px}.master-data-source code{color:var(--accent);font-family:var(--mono);font-size:10px}.master-permission-note{margin-top:8px;padding:8px 10px;border:1px solid var(--border-soft);border-radius:8px;background:var(--surface-2);color:var(--text-dim);font-size:10px;line-height:1.4}.master-toolbar{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(120px,.8fr) auto;gap:7px;align-items:center;margin-top:10px}.master-toolbar .btn{white-space:nowrap}.master-data-list{margin-top:9px}.master-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);-webkit-overflow-scrolling:touch}.master-table{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;font-size:11px}.master-table th,.master-table td{border-right:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);padding:6px;background:var(--surface-2);vertical-align:middle}.master-table th{position:sticky;top:0;z-index:2;background:var(--surface-3);color:var(--text-faint);font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.35px;text-align:left;white-space:nowrap}.master-table th:last-child,.master-table td:last-child{border-right:0}.master-table tbody tr:last-child td{border-bottom:0}.master-table td:first-child{width:38px;text-align:center;color:var(--text-faint);font-size:9px;font-weight:800}.master-table td:nth-child(2){min-width:130px}.master-table td:nth-child(3){min-width:140px}.master-table td:nth-child(4),.master-table td:nth-child(5){width:100px}.master-table td:nth-child(6){min-width:230px}.master-table td:last-child{width:42px;text-align:center}.master-table input,.master-table select{padding:7px 8px;font-size:12px;border-radius:7px;background:var(--surface);border-color:var(--border)}.master-table select{border-color:#c8d8fa}.dark-theme .master-table select{border-color:#D9A441;background:var(--surface-2)}.master-empty{padding:14px;text-align:center}.master-data-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.master-page-info{font-size:10px;color:var(--text-faint);text-align:center;flex:1}.master-page-btns{display:flex;gap:5px}.master-page-btns .btn{padding:6px 9px}.master-data-actions{display:flex;gap:7px;margin-top:9px}.master-data-actions .btn:first-child{flex:1}.master-data-actions .btn:last-child{flex:2}.master-count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:22px;padding:0 7px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:10px;font-weight:900}.master-summary-actions{display:flex;align-items:center;gap:7px;flex:0 0 auto}.master-summary-actions .btn{padding:7px 9px}
+@media(max-width:600px){.master-toolbar{grid-template-columns:1fr 1fr}.master-toolbar .master-search{grid-column:1/-1}.master-toolbar .btn{width:100%}.master-data-actions{flex-direction:column}.master-data-actions .btn{width:100%}.master-summary-actions .btn{padding:6px 7px;font-size:10px}.master-count{display:none}}
 /* Settings collapsible sections */
-.settings-collapsible{margin:0 0 12px;padding:0;overflow:hidden}.settings-collapsible>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;padding:10px 12px;font-size:11px;font-weight:900;color:var(--text);background:var(--surface-2);user-select:none}.settings-collapsible>summary::-webkit-details-marker{display:none}.settings-collapsible>summary::before{content:'▸';color:var(--accent);font-size:12px;flex:0 0 auto}.settings-collapsible[open]>summary::before{content:'▾'}.settings-collapsible>summary>span{flex:1;min-width:0}.settings-collapsible .collapsible-body{padding:10px 11px 11px;border-top:1px solid var(--border-soft)}.settings-collapsible .collapsible-body>.small{margin-bottom:8px}.settings-add-bottom{width:100%!important;margin:2px 0 8px;color:#2864E8} 
+.settings-collapsible{margin:0 0 12px;padding:0;overflow:hidden}.settings-collapsible>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;list-style:none;cursor:pointer;padding:10px 12px;font-size:11px;font-weight:900;color:var(--text);background:var(--surface-2);user-select:none}.settings-collapsible>summary::-webkit-details-marker{display:none}.settings-collapsible>summary::before{content:'▸';color:var(--accent);font-size:12px;flex:0 0 auto}.settings-collapsible[open]>summary::before{content:'▾'}.settings-collapsible>summary>span{flex:1;min-width:0}.settings-collapsible .collapsible-body{padding:10px 11px 11px;border-top:1px solid var(--border-soft)}.settings-collapsible .collapsible-body>.small{margin-bottom:8px}.settings-add-bottom{width:100%!important;margin:2px 0 8px;color:#2864E8}
+.logic-info{position:relative;display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;margin-left:4px;border:1px solid var(--accent);border-radius:50%;color:var(--accent);font-size:10px;font-weight:900;line-height:1;cursor:help;vertical-align:middle;box-sizing:border-box}.logic-info:focus{outline:2px solid var(--accent);outline-offset:2px}.logic-info::after{content:attr(data-tooltip);position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);width:max-content;max-width:min(320px,70vw);padding:7px 9px;border:1px solid var(--accent);border-radius:7px;background:var(--surface-3);color:var(--text);font-size:10px;font-weight:700;line-height:1.4;letter-spacing:0;text-transform:none;white-space:normal;box-shadow:0 6px 18px rgba(0,0,0,.25);opacity:0;visibility:hidden;pointer-events:none;z-index:100}.logic-info:hover::after,.logic-info:focus::after{opacity:1;visibility:visible}@media(max-width:600px){.logic-info::after{position:fixed;left:50%;top:auto;bottom:82px;transform:translateX(-50%);max-width:80vw;width:max-content}}
+
 .dark-theme .settings-add-bottom{background:transparent!important;border-color:#D9A441!important;color:#D9A441!important;}
 /* Dark theme: PET-inspired gold accents. Avoid green/cyan UI accents. */
 .dark-theme input:focus,.dark-theme select:focus,.dark-theme textarea:focus{outline-color:rgba(217,164,65,.28);border-color:#d9a441}
@@ -135,9 +138,11 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 .dark-theme .report-grid .total-row td{border-top-color:#6b5a32}
 .dark-theme .submit-btn{box-shadow:0 4px 12px rgba(217,164,65,.16)}
 /* In dark mode all action buttons use the PET-style gold surface with readable black text. */
-.dark-theme .btn,.dark-theme .btn.primary,.dark-theme .btn.ghost,.dark-theme .settings-add-bottom{background:#d9a441;border-color:#d9a441;color:#111;text-shadow:none}
+.dark-theme .btn,.dark-theme .btn.primary,.dark-theme .btn.ghost{background:#d9a441;border-color:#d9a441;color:#111;text-shadow:none}
+.dark-theme .settings-add-bottom{background:transparent!important;border-color:#D9A441!important;color:#D9A441!important;text-shadow:none}
 .dark-theme .btn.danger{background:#d9a441;border-color:#d9a441;color:#111}
-.dark-theme .btn:hover,.dark-theme .settings-add-bottom:hover{filter:brightness(1.05)}
+.dark-theme .btn:hover{filter:brightness(1.05)}
+.dark-theme .settings-add-bottom:hover{background:transparent!important;filter:brightness(1.05)}
 /* Keep every dropdown neutral grey in dark mode; gold is used for its border/focus state. */
 .dark-theme input,.dark-theme textarea{background:#171b21}
 .dark-theme select,.dark-theme .compact-select{background:#232831}
@@ -235,14 +240,14 @@ main{flex:1;overflow-y:auto;padding-bottom:76px}
 "use strict";
 
 /* ===================== GRID APP CONFIG ===================== */
-const GRID_VERSION = "1.0.0";
+const GRID_VERSION = "1.1.0";
 const THEME_KEY = "grid.theme.v1";
 const LS_KEY = "grid.config.v2";
 const SYNC_KEY = "grid.sync.v1";
 const SYNC_BASE_KEY = "grid.sync.base.v1";
 const MASTER_DATA_KEY = "grid.masterdata.v1";
-const MASTER_DATA_RANGE = "Master Data!A1:E500";
 const MASTER_DATA_HEADERS = ["Field Name","Field Value","Active","Logic Based","Logic"];
+const MASTER_DATA_PAGE_SIZE = 12;
 function getDriveSettingsFileName(){
   const title=(config?.links?.formTitle||"").trim();
   const safeTitle=title.replace(/[\\/:*?"<>|\u0000-\u001F]/g,"_").replace(/\s+/g," ").trim();
@@ -260,6 +265,8 @@ const EMPTY_CONFIG = {
     formViewUrl: "",
     sheetUrl: "",
     masterDataSheetUrl: "",
+    masterDataSheetName: "",
+    masterDataRange: "",
     formTitle: ""
   },
   fields: [],
@@ -290,6 +297,8 @@ function loadConfig(){
     c.links.formViewUrl ??= "";
     c.links.sheetUrl ??= "";
     c.links.masterDataSheetUrl ??= "";
+    c.links.masterDataSheetName ??= "";
+    c.links.masterDataRange ??= "";
     c.links.formTitle ??= "";
     c.fields=Array.isArray(c.fields)?c.fields:[];
     c.defaultValueRows=Array.isArray(c.defaultValueRows)?c.defaultValueRows:null;
@@ -1192,13 +1201,29 @@ function renderLinksTab(){
     <div class="card">
       <div class="field"><label>Google Form link</label><input id="cfgFormUrl" value="${esc(config.links.formViewUrl)}" placeholder="https://docs.google.com/forms/d/e/.../viewform"><div class="field-hint">Use the public <b>viewform</b> URL.</div></div>
       <div class="field"><label>Google Sheet link</label><input id="cfgSheetUrl" value="${esc(config.links.sheetUrl)}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"></div>
-      <div class="field"><label>Master Data Google Sheet link</label><input id="cfgMasterDataSheetUrl" value="${esc(config.links.masterDataSheetUrl||"")}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"><div class="field-hint">GRID reads/writes <b>Master Data!A1:E500</b> from this Google Sheet.</div></div>
+      <div class="field"><label>Master Data Google Sheet link</label><input id="cfgMasterDataSheetUrl" value="${esc(config.links.masterDataSheetUrl||"")}" placeholder="https://docs.google.com/spreadsheets/d/.../edit"><div class="field-hint">GRID reads and writes the configured sheet/range below. All users can read; saving requires Editor access.</div></div>
+      <div class="field"><label>Master Data sheet name</label><input id="cfgMasterDataSheetName" value="${esc(config.links.masterDataSheetName||"")}" placeholder="e.g. Master Data"><div class="field-hint">Enter the exact Google Sheets tab name. Spaces are allowed.</div></div>
+      <div class="field"><label>Master Data range</label><input id="cfgMasterDataRange" value="${esc(config.links.masterDataRange||"")}" placeholder="e.g. A1:E500"><div class="field-hint">Enter only the cell range. Suggested: <b>A1:E500</b> for the five Master Data columns.</div></div>
       <div class="field"><label>Form title</label><input id="cfgFormTitle" value="${esc(config.links.formTitle)}" placeholder="Enter form title"></div>
       <button class="btn primary" id="saveLinks" style="width:100%;margin-top:5px">Save links</button>
     </div></div>`;
 }
 let formFieldsSectionOpen=false;
-let defaultValuesSectionOpen=false;
+let masterDataSectionOpen=false;
+let masterDataPage=1;
+let masterDataSearch="";
+let masterDataFieldFilter="";
+function masterDataA1Range(){
+  const sheet=String(config.links.masterDataSheetName||"").trim();
+  const range=String(config.links.masterDataRange||"").trim();
+  if(!sheet||!range)return "";
+  return `'${sheet.replace(/'/g,"''")}'!${range}`;
+}
+function masterDataSourceLabel(){
+  const sheet=String(config.links.masterDataSheetName||"").trim();
+  const range=String(config.links.masterDataRange||"").trim();
+  return sheet&&range?`${sheet}!${range}`:"Not configured";
+}
 function renderFieldsTab(){
   return `<div class="settings-section">
     <div class="info-box"><b>Pre-fill helper:</b> open the Form in edit mode → ⋮ → <b>Pre-fill form</b> → enter recognizable values → Get Link. Paste that full URL below. GRID detects every <code>entry.NNNNNNN=value</code> automatically.</div>
@@ -1218,25 +1243,23 @@ function renderFieldsTab(){
         <button class="btn" id="saveFields" style="width:100%;margin-top:2px">Save form fields</button>
       </div>
     </details>
-    <div class="card master-data-card">
-      <div class="settings-section-head">
-        <div><div class="section-title" style="margin:0">Master Data</div><div class="small">Source: <b>Master Data!A1:E500</b>. Field names must match the Form Fields names. Active rows drive the Home dropdowns; Logic Based rows are evaluated against current Home selections.</div></div>
-        <button class="btn primary compact-action" id="fetchMasterData" type="button">↓ Fetch values</button>
-      </div>
-      <div id="masterDataStatus" class="small" style="margin-top:8px"></div>
-      <div id="masterDataList" class="master-data-list"></div>
-      <div class="master-data-actions">
-        <button class="btn ghost settings-add-bottom" id="addMasterRow" type="button">＋ Add master value</button>
-        <button class="btn" id="saveMasterData" type="button" style="width:100%;margin-top:2px">Save Master Data</button>
-      </div>
-    </div>
-    <details class="instructions settings-collapsible" id="defaultValuesSection" ${defaultValuesSectionOpen?'open':''}>
-      <summary><span>Default values shown on Home</span><button class="btn primary compact-action" id="addDefaultValue" type="button">＋ Add default value</button></summary>
+    <details class="instructions settings-collapsible" id="masterDataSection" ${masterDataSectionOpen?'open':''}>
+      <summary><span>Master Data</span><div class="master-summary-actions"><span class="master-count" id="masterDataCount">${masterDataRows.length}</span><button class="btn primary compact-action" id="fetchMasterData" type="button">↓ Fetch values</button></div></summary>
       <div class="collapsible-body">
-        <div class="small">Legacy/manual fallback values. When Master Data contains rows for a field, Master Data takes precedence for the Home dropdown.</div>
-        <div id="defaultValueList"></div>
-        <button class="btn ghost settings-add-bottom" id="addDefaultValueBottom" type="button">＋ Add default value</button>
-        <button class="btn" id="saveDefaults" style="width:100%;margin-top:2px">Save default values</button>
+        <div class="master-data-source"><b>Source:</b> <code id="masterDataSourceLabel">${esc(masterDataSourceLabel())}</code>. The first row must contain the five headers: <b>Field Name, Field Value, Active, Logic Based, Logic</b>. Active rows drive Home dropdowns; Logic Based rows are evaluated against current Home selections.</div>
+        <div class="small master-permission-note">All users can view the Master Data. Only users with <b>Editor</b> access to the Google Sheet can save changes. If a read-only user tries to save, GRID will show a permission message and keep the unsaved data on screen.</div>
+        <div id="masterDataStatus" class="small" style="margin-top:8px"></div>
+        <div class="master-toolbar">
+          <input class="master-search" id="masterDataSearch" type="search" value="${esc(masterDataSearch)}" placeholder="Search field name or value…">
+          <select id="masterDataFieldFilter"><option value="">All fields</option></select>
+          <button class="btn ghost" id="addMasterRow" type="button">＋ Add row</button>
+        </div>
+        <div id="masterDataList" class="master-data-list"></div>
+        <div id="masterDataPager" class="master-data-pager"></div>
+        <div class="master-data-actions">
+          <button class="btn ghost" id="addMasterRowBottom" type="button">＋ Add master value</button>
+          <button class="btn" id="saveMasterData" type="button">Save Master Data</button>
+        </div>
       </div>
     </details>
   </div>`;
@@ -1250,66 +1273,71 @@ function ensureMasterDraftRows(){
   masterDraftRows=masterDataRows.map(normalizeMasterRow);
   return masterDraftRows;
 }
-function masterDataSpreadsheetId(){
-  return sheetIdFromUrl(config.links.masterDataSheetUrl);
-}
-function masterRowsToValues(rows){
-  return [MASTER_DATA_HEADERS,...rows.map(r=>[r.fieldName,r.fieldValue,truthyMasterFlag(r.active)?"TRUE":"FALSE",truthyMasterFlag(r.logicBased)?"TRUE":"FALSE",r.logic])];
-}
+function masterDataSpreadsheetId(){return sheetIdFromUrl(config.links.masterDataSheetUrl)}
+function masterRowsToValues(rows){return [MASTER_DATA_HEADERS,...rows.map(r=>[r.fieldName,r.fieldValue,truthyMasterFlag(r.active)?"TRUE":"FALSE",truthyMasterFlag(r.logicBased)?"TRUE":"FALSE",r.logic])]}
 function masterDataStatusText(){
   if(!config.links.masterDataSheetUrl)return "Add the Master Data Google Sheet link in Settings → Links.";
+  if(!config.links.masterDataSheetName||!config.links.masterDataRange)return "Enter the Master Data sheet name and range in Settings → Links.";
   if(!masterDataRows.length)return "No Master Data has been fetched yet.";
   const when=masterDataFetchedAt?new Date(masterDataFetchedAt).toLocaleString():"unknown time";
   return `${masterDataRows.length} master-data row${masterDataRows.length===1?"":"s"} loaded · ${when}`;
 }
+function filteredMasterRowIndexes(){
+  const rows=ensureMasterDraftRows(),q=String(masterDataSearch||"").trim().toLowerCase(),field=String(masterDataFieldFilter||"").trim().toLowerCase();
+  return rows.map((r,i)=>({r,i})).filter(({r})=>{
+    if(field&&String(r.fieldName).trim().toLowerCase()!==field)return false;
+    if(!q)return true;
+    return [r.fieldName,r.fieldValue,r.active,r.logicBased,r.logic].some(v=>String(v??"").toLowerCase().includes(q));
+  });
+}
 function renderMasterData(){
-  const wrap=document.getElementById("masterDataList");const status=document.getElementById("masterDataStatus");if(!wrap)return;
-  if(status)status.textContent=masterDataStatusText();
+  const wrap=document.getElementById("masterDataList"),status=document.getElementById("masterDataStatus");if(!wrap)return;
   const rows=ensureMasterDraftRows();
-  if(!rows.length){wrap.innerHTML=`<div class="small master-empty">No Master Data rows loaded. Click <b>Fetch values</b>, or add a new row.</div>`;return;}
-  wrap.innerHTML=rows.map((r,i)=>`<div class="master-row" data-master-row data-index="${i}">
-    <div class="master-cell"><label>Field Name</label><input data-master-prop="fieldName" value="${esc(r.fieldName)}" placeholder="Month"></div>
-    <div class="master-cell"><label>Field Value</label><input data-master-prop="fieldValue" value="${esc(r.fieldValue)}" placeholder="Sep-26"></div>
-    <div class="master-cell compact"><label>Active</label><select data-master-prop="active"><option value="TRUE" ${truthyMasterFlag(r.active)?"selected":""}>TRUE</option><option value="FALSE" ${truthyMasterFlag(r.active)?"":"selected"}>FALSE</option></select></div>
-    <div class="master-cell compact"><label>Logic Based</label><select data-master-prop="logicBased"><option value="TRUE" ${truthyMasterFlag(r.logicBased)?"selected":""}>TRUE</option><option value="FALSE" ${truthyMasterFlag(r.logicBased)?"":"selected"}>FALSE</option></select></div>
-    <div class="master-cell logic"><label>Logic</label><input data-master-prop="logic" value="${esc(r.logic)}" placeholder='Month IN ("Sep-26", "Oct-26")'></div>
-    <button class="icon-btn danger-icon master-delete" data-master-delete type="button">×</button>
-  </div>`).join("");
+  if(status)status.textContent=masterDataStatusText();
+  const count=document.getElementById("masterDataCount");if(count)count.textContent=rows.length;
+  const source=document.getElementById("masterDataSourceLabel");if(source)source.textContent=masterDataSourceLabel();
+  const filter=document.getElementById("masterDataFieldFilter");
+  if(filter){
+    const current=masterDataFieldFilter,fields=[...new Set(rows.map(r=>String(r.fieldName||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+    filter.innerHTML=`<option value="">All fields</option>${fields.map(f=>`<option value="${esc(f)}">${esc(f)}</option>`).join("")}`;
+    filter.value=fields.find(f=>f.toLowerCase()===current.toLowerCase())||"";
+  }
+  const matches=filteredMasterRowIndexes(),totalPages=Math.max(1,Math.ceil(matches.length/MASTER_DATA_PAGE_SIZE));
+  masterDataPage=Math.min(Math.max(1,masterDataPage),totalPages);
+  const start=(masterDataPage-1)*MASTER_DATA_PAGE_SIZE,pageRows=matches.slice(start,start+MASTER_DATA_PAGE_SIZE);
+  if(!pageRows.length)wrap.innerHTML=`<div class="master-table-wrap"><div class="master-empty small">${rows.length?"No Master Data rows match the current search/filter.":"No Master Data rows loaded. Click <b>Fetch values</b>, or add a new row."}</div></div>`;
+  else wrap.innerHTML=`<div class="master-table-wrap"><table class="master-table"><thead><tr><th>#</th><th>Field Name</th><th>Field Value</th><th>Active</th><th>Logic Based</th><th>Logic <span class="logic-info" tabindex="0" role="button" aria-label="Logic syntax help" data-tooltip="Use: IN, NOT IN, =, !=, &gt;, &lt;, &gt;=, &lt;=, CONTAINS, AND, OR">ⓘ</span></th><th></th></tr></thead><tbody>${pageRows.map(({r,i})=>`<tr data-master-row data-index="${i}"><td>${i+1}</td><td><input data-master-prop="fieldName" value="${esc(r.fieldName)}" placeholder="Month"></td><td><input data-master-prop="fieldValue" value="${esc(r.fieldValue)}" placeholder="Sep-26"></td><td><select data-master-prop="active"><option value="TRUE" ${truthyMasterFlag(r.active)?"selected":""}>TRUE</option><option value="FALSE" ${truthyMasterFlag(r.active)?"":"selected"}>FALSE</option></select></td><td><select data-master-prop="logicBased"><option value="TRUE" ${truthyMasterFlag(r.logicBased)?"selected":""}>TRUE</option><option value="FALSE" ${truthyMasterFlag(r.logicBased)?"":"selected"}>FALSE</option></select></td><td><input data-master-prop="logic" value="${esc(r.logic)}" placeholder='Month IN ("Sep-26", "Oct-26")'></td><td><button class="icon-btn danger-icon master-delete" data-master-delete type="button" aria-label="Delete row">×</button></td></tr>`).join("")}</tbody></table></div>`;
+  const pager=document.getElementById("masterDataPager");
+  if(pager){
+    pager.innerHTML=`<div class="master-page-btns"><button class="btn ghost" id="masterPrev" type="button" ${masterDataPage<=1?"disabled":""}>‹ Prev</button></div><div class="master-page-info">${matches.length?`Showing ${start+1}–${Math.min(start+MASTER_DATA_PAGE_SIZE,matches.length)} of ${matches.length}`:"0 rows"} · Page ${masterDataPage}/${totalPages}</div><div class="master-page-btns"><button class="btn ghost" id="masterNext" type="button" ${masterDataPage>=totalPages?"disabled":""}>Next ›</button></div>`;
+    pager.querySelector("#masterPrev")?.addEventListener("click",()=>{masterDataPage--;renderMasterData()});
+    pager.querySelector("#masterNext")?.addEventListener("click",()=>{masterDataPage++;renderMasterData()});
+  }
   wrap.querySelectorAll("[data-master-row]").forEach(row=>{
-    row.querySelectorAll("[data-master-prop]").forEach(el=>el.addEventListener("input",()=>{
-      const i=+row.dataset.index;if(masterDraftRows?.[i])masterDraftRows[i][el.dataset.masterProp]=el.value;
-    }));
-    row.querySelectorAll("[data-master-prop]").forEach(el=>el.addEventListener("change",()=>{
-      const i=+row.dataset.index;if(masterDraftRows?.[i])masterDraftRows[i][el.dataset.masterProp]=el.value;
-    }));
-    row.querySelector("[data-master-delete]")?.addEventListener("click",async()=>{
-      if(await confirmDialog("Delete master value","Delete this Master Data row?","Delete")){masterDraftRows.splice(+row.dataset.index,1);renderMasterData();}
-    });
+    row.querySelectorAll("[data-master-prop]").forEach(el=>el.addEventListener("input",()=>{const i=+row.dataset.index;if(masterDraftRows?.[i])masterDraftRows[i][el.dataset.masterProp]=el.value}));
+    row.querySelectorAll("[data-master-prop]").forEach(el=>el.addEventListener("change",()=>{const i=+row.dataset.index;if(masterDraftRows?.[i])masterDraftRows[i][el.dataset.masterProp]=el.value}));
+    row.querySelector("[data-master-delete]")?.addEventListener("click",async()=>{if(await confirmDialog("Delete master value","Delete this Master Data row?","Delete")){masterDraftRows.splice(+row.dataset.index,1);masterDataPage=Math.min(masterDataPage,Math.max(1,Math.ceil(filteredMasterRowIndexes().length/MASTER_DATA_PAGE_SIZE)));renderMasterData()}});
   });
 }
 function addMasterRow(){
-  masterDraftRows=ensureMasterDraftRows();
-  masterDraftRows.push({fieldName:sortFields()[0]?.label||"",fieldValue:"",active:"TRUE",logicBased:"FALSE",logic:""});
-  renderMasterData();
+  masterDraftRows=ensureMasterDraftRows();masterDraftRows.push({fieldName:sortFields()[0]?.label||"",fieldValue:"",active:"TRUE",logicBased:"FALSE",logic:""});
+  masterDataSearch="";masterDataFieldFilter="";masterDataPage=Math.max(1,Math.ceil(masterDraftRows.length/MASTER_DATA_PAGE_SIZE));renderMasterData();
   requestAnimationFrame(()=>document.querySelector("[data-master-row]:last-child")?.scrollIntoView({behavior:"smooth",block:"center"}));
 }
 async function fetchMasterData(){
   if(!config.links.masterDataSheetUrl){toast("Configure the Master Data Google Sheet link first.");settingsTab="links";renderSettingsTab();return;}
+  if(!config.links.masterDataSheetName||!config.links.masterDataRange){toast("Configure the Master Data sheet name and range in Settings → Links.");settingsTab="links";renderSettingsTab();return;}
   const sid=masterDataSpreadsheetId();if(!sid){toast("Master Data Google Sheet link is invalid.");return;}
+  const a1=masterDataA1Range();if(!a1){toast("Master Data sheet name and range are required.");return;}
   const btn=document.getElementById("fetchMasterData");if(btn){btn.disabled=true;btn.textContent="Fetching…";}
   try{
     if(!await privateAccess())return;
-    const range=encodeURIComponent(MASTER_DATA_RANGE);
-    let res;
-    try{res=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`)}
-    catch(e){if(e.status===401){await privateAccess(true);res=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`)}else throw e;}
-    const data=await res.json();const vals=data.values||[];
-    const header=(vals[0]||[]).map(x=>String(x??""));
-    const idx=MASTER_DATA_HEADERS.map(h=>header.findIndex(x=>x.trim().toLowerCase()===h.toLowerCase()));
+    const range=encodeURIComponent(a1);let res;
+    try{res=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`)}catch(e){if(e.status===401){await privateAccess(true);res=await googleRequest(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}/values/${range}?majorDimension=ROWS`)}else throw e}
+    const data=await res.json(),vals=data.values||[],header=(vals[0]||[]).map(x=>String(x??"")),idx=MASTER_DATA_HEADERS.map(h=>header.findIndex(x=>x.trim().toLowerCase()===h.toLowerCase()));
     if(idx.some(x=>x<0))throw new Error("Master Data must have headers: Field Name, Field Value, Active, Logic Based, Logic");
-    masterDataRows=vals.slice(1,500).map(row=>normalizeMasterRow({fieldName:row[idx[0]]??"",fieldValue:row[idx[1]]??"",active:row[idx[2]]??"TRUE",logicBased:row[idx[3]]??"FALSE",logic:row[idx[4]]??""})).filter(r=>[r.fieldName,r.fieldValue,r.active,r.logicBased,r.logic].some(v=>String(v).trim()!==""));
-    masterDataFetchedAt=new Date().toISOString();masterDraftRows=null;saveMasterDataCache();
-    renderMasterData();renderHome(false);toast(`Fetched ${masterDataRows.length} Master Data row${masterDataRows.length===1?"":"s"}`);
+    masterDataRows=vals.slice(1).map(row=>normalizeMasterRow({fieldName:row[idx[0]]??"",fieldValue:row[idx[1]]??"",active:row[idx[2]]??"TRUE",logicBased:row[idx[3]]??"FALSE",logic:row[idx[4]]??""})).filter(r=>[r.fieldName,r.fieldValue,r.active,r.logicBased,r.logic].some(v=>String(v).trim()!==""));
+    masterDataFetchedAt=new Date().toISOString();masterDraftRows=null;masterDataPage=1;masterDataSearch="";masterDataFieldFilter="";saveMasterDataCache();renderMasterData();renderHome(false);toast(`Fetched ${masterDataRows.length} Master Data row${masterDataRows.length===1?"":"s"}`);
   }catch(e){
     if(e.status===403)modal("Master Data is read-only","Your Google account can read this Master Data sheet, but it does not have write permission. You can view and use the values, but Save Master Data requires Editor access to the sheet.",[ {label:"OK",primary:true,onClick:()=>{}} ]);
     else if(e.message?.includes("headers:"))modal("Invalid Master Data",`<p>${esc(e.message)}</p>`,[ {label:"OK",primary:true,onClick:()=>{}} ]);
@@ -1318,22 +1346,28 @@ async function fetchMasterData(){
 }
 async function saveMasterData(){
   if(!config.links.masterDataSheetUrl){toast("Configure the Master Data Google Sheet link first.");return;}
+  if(!config.links.masterDataSheetName||!config.links.masterDataRange){toast("Configure the Master Data sheet name and range in Settings → Links.");return;}
   const sid=masterDataSpreadsheetId();if(!sid){toast("Master Data Google Sheet link is invalid.");return;}
+  const a1=masterDataA1Range();if(!a1){toast("Master Data sheet name and range are required.");return;}
   const rows=ensureMasterDraftRows().map(normalizeMasterRow).filter(r=>r.fieldName.trim()||r.fieldValue.trim()||r.logic.trim()).slice(0,499);
   const btn=document.getElementById("saveMasterData");if(btn){btn.disabled=true;btn.textContent="Saving…";}
   try{
     if(!await privateAccess())return;
     const base=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(sid)}`;
-    const clearRange=encodeURIComponent("Master Data!A2:E500");
-    try{await googleRequest(`${base}/values/${clearRange}:clear`,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});}
-    catch(e){if(e.status===401){await privateAccess(true);await googleRequest(`${base}/values/${clearRange}:clear`,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});}else throw e;}
+    const range=String(config.links.masterDataRange).trim();
+    const m=range.match(/^([A-Z]+)(\d+):([A-Z]+)(\d+)$/i);
+    if(!m)throw new Error("Master Data range must look like A1:E500 (or another rectangular A1 range)");
+    const startCol=m[1].toUpperCase(),startRow=parseInt(m[2],10),endCol=m[3].toUpperCase(),configuredEndRow=parseInt(m[4],10);
+    if(startRow>=configuredEndRow)throw new Error("Master Data range must include a header row and at least one data row");
+    const sheet=String(config.links.masterDataSheetName).trim().replace(/'/g,"''");
+    const clearRange=`'${sheet}'!${startCol}${startRow+1}:${endCol}${configuredEndRow}`;
+    try{await googleRequest(`${base}/values/${encodeURIComponent(clearRange)}:clear`,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})}catch(e){if(e.status===401){await privateAccess(true);await googleRequest(`${base}/values/${encodeURIComponent(clearRange)}:clear`,{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"})}else throw e}
     if(rows.length){
-      const endRow=Math.min(500,rows.length+1);const writeRange=encodeURIComponent(`Master Data!A2:E${endRow}`);
-      const body={range:`Master Data!A2:E${endRow}`,majorDimension:"ROWS",values:rows.slice(0,499).map(r=>[r.fieldName,r.fieldValue,truthyMasterFlag(r.active)?"TRUE":"FALSE",truthyMasterFlag(r.logicBased)?"TRUE":"FALSE",r.logic])};
-      try{await googleRequest(`${base}/values/${writeRange}?valueInputOption=USER_ENTERED`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});}
-      catch(e){if(e.status===401){await privateAccess(true);await googleRequest(`${base}/values/${writeRange}?valueInputOption=USER_ENTERED`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});}else throw e;}
+      const endRow=Math.min(configuredEndRow,startRow+rows.length),writeRange=`'${sheet}'!${startCol}${startRow+1}:${endCol}${endRow}`;
+      const body={range:writeRange,majorDimension:"ROWS",values:rows.slice(0,endRow-startRow).map(r=>[r.fieldName,r.fieldValue,truthyMasterFlag(r.active)?"TRUE":"FALSE",truthyMasterFlag(r.logicBased)?"TRUE":"FALSE",r.logic])};
+      try{await googleRequest(`${base}/values/${encodeURIComponent(writeRange)}?valueInputOption=USER_ENTERED`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}catch(e){if(e.status===401){await privateAccess(true);await googleRequest(`${base}/values/${encodeURIComponent(writeRange)}?valueInputOption=USER_ENTERED`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}else throw e}
     }
-    masterDataRows=rows;masterDataFetchedAt=new Date().toISOString();masterDraftRows=null;saveMasterDataCache();renderMasterData();renderHome(false);toast("Master Data saved ✓");
+    masterDataRows=rows;masterDataFetchedAt=new Date().toISOString();masterDraftRows=null;masterDataPage=1;saveMasterDataCache();renderMasterData();renderHome(false);toast("Master Data saved ✓");
   }catch(e){
     if(e.status===403)modal("No write permission","This Google account has read access to the Master Data sheet but does not have permission to modify it. Ask the sheet owner to grant Editor access. No Master Data changes were saved.",[ {label:"OK",primary:true,onClick:()=>{}} ]);
     else toast(`Master Data save failed: ${e.message||"Unknown error"}`);
@@ -1808,6 +1842,8 @@ function bindSettingsTab(){
       config.links.formViewUrl=document.getElementById("cfgFormUrl").value.trim();
       config.links.sheetUrl=document.getElementById("cfgSheetUrl").value.trim();
       config.links.masterDataSheetUrl=document.getElementById("cfgMasterDataSheetUrl")?.value.trim()||"";
+      config.links.masterDataSheetName=document.getElementById("cfgMasterDataSheetName")?.value.trim()||"";
+      config.links.masterDataRange=document.getElementById("cfgMasterDataRange")?.value.trim()||"";
       config.links.formTitle=document.getElementById("cfgFormTitle").value.trim();
       saveConfig();renderHome(true);renderReport();document.getElementById("aboutFormTitle").textContent=config.links.formTitle;toast("Links saved")
     };
@@ -1815,21 +1851,24 @@ function bindSettingsTab(){
   if(settingsTab==="fields"){
     document.getElementById("parsePrefill").onclick=parsePrefill;
     const formDetails=document.getElementById("formFieldsSection");
-    const defaultDetails=document.getElementById("defaultValuesSection");
+    const masterDetails=document.getElementById("masterDataSection");
     formDetails?.addEventListener("toggle",()=>{formFieldsSectionOpen=formDetails.open});
-    defaultDetails?.addEventListener("toggle",()=>{defaultValuesSectionOpen=defaultDetails.open});
+    masterDetails?.addEventListener("toggle",()=>{masterDataSectionOpen=masterDetails.open});
     const addFieldAction=(e)=>{e?.preventDefault();e?.stopPropagation();formFieldsSectionOpen=true;addField()};
-    const addDefaultAction=(e)=>{e?.preventDefault();e?.stopPropagation();defaultValuesSectionOpen=true;addDefaultValue()};
     document.getElementById("addField").onclick=addFieldAction;
     document.getElementById("addFieldBottom").onclick=addFieldAction;
     document.getElementById("saveFields").onclick=()=>{sortFields().forEach((f,i)=>f.order=i+1);saveConfig();renderHome(true);toast("Form fields saved")};
-    document.getElementById("addDefaultValue").onclick=addDefaultAction;
-    document.getElementById("addDefaultValueBottom").onclick=addDefaultAction;
-    document.getElementById("saveDefaults").onclick=saveDefaultValuesFromUI;
-    document.getElementById("fetchMasterData").onclick=fetchMasterData;
+    const fetchMasterAction=(e)=>{e?.preventDefault();e?.stopPropagation();fetchMasterData()};
+    document.getElementById("fetchMasterData").onclick=fetchMasterAction;
     document.getElementById("addMasterRow").onclick=addMasterRow;
+    document.getElementById("addMasterRowBottom").onclick=addMasterRow;
     document.getElementById("saveMasterData").onclick=saveMasterData;
-    renderFieldRows();renderDefaultValues();renderMasterData()
+    const masterSearch=document.getElementById("masterDataSearch");
+    masterSearch.oninput=e=>{masterDataSearch=e.target.value};
+    masterSearch.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();masterDataPage=1;renderMasterData()}};
+    masterSearch.onchange=()=>{masterDataPage=1;renderMasterData()};
+    document.getElementById("masterDataFieldFilter").onchange=e=>{masterDataFieldFilter=e.target.value;masterDataPage=1;renderMasterData()};
+    renderFieldRows();renderMasterData()
   }
   if(settingsTab==="report"){
     document.getElementById("fetchReportSettings").onclick=()=>fetchReportData("fetchReportSettings");
